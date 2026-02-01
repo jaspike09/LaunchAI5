@@ -134,6 +134,7 @@
                     <li><i class="fa-solid fa-check text-blue-500 mr-2"></i> 30-Day Roadmap Access</li>
                     <li><i class="fa-solid fa-check text-blue-500 mr-2"></i> Orchestrator Management</li>
                 </ul>
+				<button onclick="handleAccess()" class="bg-blue-600 px-8 py-4 rounded-2xl font-bold">Deploy the GEMS Board</button>
                 <button onclick="subscribe('Founder')" class="w-full py-4 rounded-xl bg-blue-600 font-bold hover:bg-blue-500 transition shadow-lg shadow-blue-600/20">Start Launching</button>
             </div>
 			<div class="glass-card p-10 rounded-3xl border-2 border-slate-800 hover:border-blue-500 transition flex flex-col">
@@ -163,52 +164,70 @@
     </footer>
 
     <script>
-		window.activateGodMode = function() {
-    localStorage.setItem('launchAI_GodMode', 'true');
-    console.log("🔓 GOD MODE ACTIVE.");
-    alert("Founder status confirmed. You now have permanent access to all GEMS.");
-};
-        function analyzeIdea() {
-            const idea = document.getElementById('ideaInput').value;
-            const resultsArea = document.getElementById('resultsArea');
-            const scoreCircle = document.getElementById('scoreCircle');
-            const scoreText = document.getElementById('scoreText');
-            const inputContainer = document.getElementById('inputContainer');
+    // 1. THE GOD MODE ACTIVATOR
+    window.activateGodMode = function() {
+        localStorage.setItem('launchAI_GodMode', 'true');
+        console.log("🔓 GOD MODE ACTIVE.");
+        alert("Founder status confirmed. You now have permanent access to all GEMS.");
+    };
 
-            if (!idea || idea.trim() === "") {
-                alert("Please enter a business idea first!");
-                return;
-            }
+    // 2. THE MASTER GATEKEEPER (Replaces your old subscribe function)
+    function handleAccess(tier) {
+        // First, save the idea so the Dashboard knows what we are building
+        const idea = document.getElementById('ideaInput').value;
+        localStorage.setItem('userBusinessIdea', idea || "New Venture");
 
-            inputContainer.classList.add('analyzing-active');
-            resultsArea.classList.remove('hidden');
-            resultsArea.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        // Check if YOU are the Founder
+        const isFounder = localStorage.getItem('launchAI_GodMode') === 'true';
 
-            let score = 0;
-            const targetScore = Math.floor(Math.random() * 20) + 76; 
-            
-            const interval = setInterval(() => {
-                if (score >= targetScore) {
-                    clearInterval(interval);
-                    inputContainer.classList.remove('analyzing-active');
-                    document.getElementById('verdictTitle').innerText = "Analysis: High Potential";
-                    document.getElementById('verdictDesc').innerText = "Market data shows a strong path to revenue. Your 30-day launch plan is ready.";
-                } else {
-                    score++;
-                    scoreText.innerText = score;
-                    const offset = 377 - (377 * score / 100);
-                    scoreCircle.style.strokeDashoffset = offset;
-                }
-            }, 25);
-        }
-
-        function subscribe(tier) {
+        if (isFounder) {
+            console.log("Founder detected. Bypassing Stripe...");
+            window.location.href = 'dashboard.html';
+        } else {
+            console.log("Customer detected. Redirecting to Stripe...");
+            // Route to the correct Stripe link based on tier
             if (tier === 'Founder') {
                 window.location.href = "https://buy.stripe.com/dRmbJ01vhgRL8Am8WD7Re03";
             } else if (tier === 'Growth') {
                 window.location.href = "https://buy.stripe.com/cNi4gy6PB8lf3g22yf7Re02";
             }
         }
-    </script>
+    }
+
+    // 3. THE ANALYZER LOGIC (Keep your existing animation)
+    function analyzeIdea() {
+        const idea = document.getElementById('ideaInput').value;
+        const resultsArea = document.getElementById('resultsArea');
+        const scoreCircle = document.getElementById('scoreCircle');
+        const scoreText = document.getElementById('scoreText');
+        const inputContainer = document.getElementById('inputContainer');
+
+        if (!idea || idea.trim() === "") {
+            alert("Please enter a business idea first!");
+            return;
+        }
+
+        inputContainer.classList.add('analyzing-active');
+        resultsArea.classList.remove('hidden');
+        resultsArea.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+        let score = 0;
+        const targetScore = Math.floor(Math.random() * 20) + 76; 
+        
+        const interval = setInterval(() => {
+            if (score >= targetScore) {
+                clearInterval(interval);
+                inputContainer.classList.remove('analyzing-active');
+                document.getElementById('verdictTitle').innerText = "Analysis: High Potential";
+                document.getElementById('verdictDesc').innerText = "Market data shows a strong path to revenue. Your 30-day launch plan is ready.";
+            } else {
+                score++;
+                scoreText.innerText = score;
+                const offset = 377 - (377 * score / 100);
+                scoreCircle.style.strokeDashoffset = offset;
+            }
+        }, 25);
+    }
+</script>
 </body>
 </html>
