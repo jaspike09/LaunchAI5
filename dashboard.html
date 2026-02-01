@@ -142,8 +142,7 @@
 
         </div>
     </main>
-
-    <script>
+    <SCRIPT> 
     /**
      * 1. THE TRUTH-TELLER INITIALIZATION
      */
@@ -175,9 +174,7 @@
     })();
 
     async function triggerInitialCritique(idea) {
-        // Open the CoachAI chat automatically
         openChat('CoachAI');
-        
         const chatBox = document.getElementById('chatBox');
         const loaderId = "loader-init";
         chatBox.innerHTML += `<div id="${loaderId}" class="text-blue-500 text-xs animate-pulse p-2 uppercase tracking-widest font-bold">Board is reviewing "${idea}" for viability...</div>`;
@@ -193,7 +190,6 @@
                 })
             });
             const data = await response.json();
-            
             const loader = document.getElementById(loaderId);
             if (loader) loader.remove();
             
@@ -210,7 +206,7 @@
     }
 
     /**
-     * 2. NAVIGATION
+     * 2. NAVIGATION & AGENT LOGIC
      */
     function showSection(id) {
         document.getElementById('overview').classList.add('hidden');
@@ -221,7 +217,6 @@
         document.querySelectorAll('.sidebar-link').forEach(link => link.classList.remove('active-link'));
         const activeLink = document.getElementById('link-' + id);
         if (activeLink) activeLink.classList.add('active-link');
-
         document.getElementById('sectionTitle').innerText = id.charAt(0).toUpperCase() + id.slice(1);
     }
 
@@ -230,13 +225,25 @@
         currentAgent = agent;
         showSection('chatArea');
         document.getElementById('sectionTitle').innerText = agent;
-        
         const chatBox = document.getElementById('chatBox');
-        // Clear previous chat when switching agents, but preserve the initial critique if just starting
+        const idea = localStorage.getItem('userBusinessIdea') || 'Your Venture';
+
+        // Custom GREETINGS per Agent
+        let greeting = "";
+        if (agent === 'AccountantAI') {
+            greeting = `I am ready to run your fiscal audit. Using 2026 market projections, we need to calculate your **Target Profit Margin**. Should we start with your **$Burn Rate$** or your **$Revenue Forecast$?**`;
+        } else if (agent === 'SecretaryAI') {
+            greeting = `I am recording all Board decisions. Would you like a **Summary Report** of your current progress or should I draft a **To-Do List** based on the Coach's critique?`;
+        } else if (agent === 'MentorAI') {
+            greeting = `Welcome to the inner circle. We aren't just building a business; we're building a legacy. What is the one thing keeping you from starting today?`;
+        } else {
+            greeting = `System online. Standing by for ${agent} protocols regarding "${idea}".`;
+        }
+
         chatBox.innerHTML = `
             <div class="bg-blue-600/10 border border-blue-500/20 p-4 rounded-2xl mb-4">
                 <p class="text-sm font-bold text-blue-400 mb-1">${agent}:</p>
-                <p class="text-slate-200">System online. Standing by for ${agent} protocols regarding "${localStorage.getItem('userBusinessIdea') || 'Your Venture'}".</p>
+                <p class="text-slate-200">${greeting}</p>
             </div>`;
     }
 
@@ -254,7 +261,7 @@
         chatBox.scrollTop = chatBox.scrollHeight;
 
         const loaderId = "loader-" + Date.now();
-        chatBox.innerHTML += `<div id="${loaderId}" class="text-blue-500 text-xs animate-pulse p-2 uppercase tracking-widest font-bold">Connecting to Board...</div>`;
+        chatBox.innerHTML += `<div id="${loaderId}" class="text-blue-500 text-xs animate-pulse p-2 uppercase tracking-widest font-bold">GEMS Board processing...</div>`;
 
         try {
             const response = await fetch('/api/architect', {
@@ -263,11 +270,14 @@
                 body: JSON.stringify({ message: text, agent: currentAgent, idea: localStorage.getItem('userBusinessIdea') })
             });
             const data = await response.json();
-            
             const loader = document.getElementById(loaderId);
             if (loader) loader.remove();
             
-            chatBox.innerHTML += `<div class="bg-blue-600/10 border border-blue-500/20 p-4 rounded-2xl mb-4 mr-12"><p class="text-sm font-bold text-blue-400 mb-1">${currentAgent}:</p><p class="text-slate-200">${data.text}</p></div>`;
+            chatBox.innerHTML += `
+                <div class="bg-blue-600/10 border border-blue-500/20 p-4 rounded-2xl mb-4 mr-12">
+                    <p class="text-sm font-bold text-blue-400 mb-1">${currentAgent}:</p>
+                    <p class="text-slate-200">${data.text}</p>
+                </div>`;
         } catch (err) {
             const loader = document.getElementById(loaderId);
             if (loader) loader.innerHTML = "<span class='text-red-500'>Board offline. Verify API.</span>";
@@ -283,6 +293,8 @@
     }
 
     document.getElementById('chatInput').addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
-</script>
+    </SCRIPT>
+
+   
 </body>
 </html>
