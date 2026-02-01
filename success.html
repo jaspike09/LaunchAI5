@@ -1,39 +1,71 @@
-<div class="glass-card p-10 rounded-3xl border-2 border-slate-800 flex flex-col items-center text-center max-w-2xl mx-auto mt-20">
-    <h2 class="text-3xl font-bold mb-6">Mission Briefing In Progress...</h2>
-    
-    <div class="w-full aspect-video rounded-2xl overflow-hidden border border-white/10 mb-8">
-        <video id="mentorVideo" width="100%" height="100%" autoplay muted controls class="object-cover">
-            <source src="MentorAI vid.mp4" type="video/mp4">
-            Your browser does not support the video tag.
-        </video>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mission Briefing | LaunchAI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .glass-card { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(15px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .video-container { box-shadow: 0 0 50px rgba(59, 130, 246, 0.15); }
+    </style>
+</head>
+<body class="bg-slate-950 text-white flex items-center justify-center min-h-screen p-6 overflow-hidden">
+
+    <div class="glass-card p-10 rounded-3xl border-2 border-slate-800 flex flex-col items-center text-center max-w-2xl mx-auto shadow-2xl relative z-10">
+        <div class="inline-block px-3 py-1 mb-4 text-[10px] font-bold tracking-[0.2em] text-blue-400 uppercase bg-blue-400/10 rounded-full border border-blue-400/20">
+            Secure Connection Established
+        </div>
+        
+        <h2 class="text-3xl font-bold mb-6 tracking-tighter">Mission Briefing In Progress...</h2>
+        
+        <div class="video-container w-full aspect-video rounded-2xl overflow-hidden border border-white/10 mb-8 bg-black">
+            <video id="mentorVideo" width="100%" height="100%" autoplay muted controls class="object-cover">
+                <source src="MentorAI vid.mp4" type="video/mp4">
+                Your browser does not support the video tag.
+            </video>
+        </div>
+
+        <p class="text-slate-400 mb-8 text-lg leading-relaxed">
+            The Board is now analyzing <span id="currentIdea" class="text-blue-400 font-bold italic">your venture</span>. 
+            Listen closely to your Mentor for initial deployment protocols.
+        </p>
+        
+        <a href="dashboard.html" id="dashboardBtn" class="opacity-0 translate-y-4 pointer-events-none bg-blue-600 px-10 py-4 rounded-xl font-bold hover:bg-blue-500 transition-all duration-700 shadow-lg shadow-blue-600/30">
+            Log In to Mission Control <i class="fa-solid fa-arrow-right ml-2"></i>
+        </a>
     </div>
 
-    <p class="text-slate-400 mb-8 text-lg">Your executive board is being initialized. Listen to your Mentor above for your first instructions.</p>
-    
-    <a href="dashboard.html" id="dashboardBtn" class="bg-blue-600 px-8 py-4 rounded-xl font-bold hover:bg-blue-500 transition shadow-lg shadow-blue-600/20">
-        Enter Mission Control
-    </a>
-</div>
+    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-blue-600/10 rounded-full blur-[120px] -z-0"></div>
 
-<script>
-    /**
-     * 1. THE PASSPORT STAMP
-     * We run this immediately. As soon as Stripe sends them here, 
-     * they are officially "Subscribed" in the eyes of the Dashboard.
-     */
-    localStorage.setItem('isSubscribed', 'true');
+    <script>
+        // 1. THE PASSPORT STAMP
+        // Grant access as soon as the page loads (Stripe confirmed)
+        localStorage.setItem('isSubscribed', 'true');
 
-    /**
-     * 2. THE CINEMATIC HANDOFF
-     * This waits until the Mentor finishes talking before 
-     * showing the button, or you can leave it visible.
-     */
-    const video = document.getElementById('mentorVideo');
-    const btn = document.getElementById('dashboardBtn');
+        // 2. LOAD USER'S IDEA
+        const savedIdea = localStorage.getItem('userBusinessIdea');
+        if (savedIdea) {
+            document.getElementById('currentIdea').innerText = `"${savedIdea}"`;
+        }
 
-    // If you want the button to "Pop" when the video ends:
-    video.onended = function() {
-        btn.classList.add('animate-bounce'); // Optional: make it bounce to grab attention
-        console.log("Briefing complete. Dashboard access ready.");
-    };
-</script>
+        // 3. CINEMATIC UNVEIL
+        const video = document.getElementById('mentorVideo');
+        const btn = document.getElementById('dashboardBtn');
+
+        // Reveal the button 5 seconds into the video or when it ends
+        // This gives it a "top secret" feel
+        video.onplay = () => {
+            setTimeout(() => {
+                btn.classList.remove('opacity-0', 'translate-y-4', 'pointer-events-none');
+            }, 5000); 
+        };
+
+        video.onended = function() {
+            btn.classList.add('animate-pulse');
+            console.log("Briefing complete. GEMS Board activated.");
+        };
+    </script>
+</body>
+</html>
