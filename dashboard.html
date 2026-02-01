@@ -23,34 +23,35 @@
         </div>
         
         <nav class="flex-1 mt-6 space-y-1 overflow-y-auto max-h-[60vh]">
-    <a href="#" id="link-overview" onclick="showSection('overview')" class="sidebar-link active-link flex items-center px-6 py-4 transition">
-        <i class="fa-solid fa-chart-line mr-3"></i> Mission Control
-    </a>
-    <a href="#" id="link-roadmap" onclick="showSection('roadmap')" class="sidebar-link flex items-center px-6 py-4 transition">
-        <i class="fa-solid fa-map-location-dot mr-3"></i> 30-Day Roadmap
-    </a>
-    
-    <div class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest mt-4 border-t border-white/5">The GEMS Board</div>
-    
-    <a href="#" onclick="openChat('MentorAI')" class="sidebar-link flex items-center px-6 py-4 transition">
-        <i class="fa-solid fa-user-tie text-blue-400 mr-3"></i> MentorAI
-    </a>
-    <a href="#" onclick="openChat('CoachAI')" class="sidebar-link flex items-center px-6 py-4 transition">
-        <i class="fa-solid fa-stopwatch text-green-400 mr-3"></i> CoachAI
-    </a>
-    <a href="#" onclick="openChat('MarketingAI')" class="sidebar-link flex items-center px-6 py-4 transition">
-        <i class="fa-solid fa-bullhorn text-orange-400 mr-3"></i> MarketingAI
-    </a>
-    <a href="#" onclick="openChat('LawyerAI')" class="sidebar-link flex items-center px-6 py-4 transition">
-        <i class="fa-solid fa-gavel text-slate-300 mr-3"></i> LawyerAI
-    </a>
-    <a href="#" onclick="openChat('AccountantAI')" class="sidebar-link flex items-center px-6 py-4 transition">
-        <i class="fa-solid fa-calculator text-red-400 mr-3"></i> AccountantAI
-    </a>
-    <a href="#" onclick="openChat('SecretaryAI')" class="sidebar-link flex items-center px-6 py-4 transition">
-        <i class="fa-solid fa-folder-open text-yellow-400 mr-3"></i> SecretaryAI
-    </a>
-</nav>
+            <a href="#" id="link-overview" onclick="showSection('overview')" class="sidebar-link active-link flex items-center px-6 py-4 transition">
+                <i class="fa-solid fa-chart-line mr-3"></i> Mission Control
+            </a>
+            <a href="#" id="link-roadmap" onclick="showSection('roadmap')" class="sidebar-link flex items-center px-6 py-4 transition">
+                <i class="fa-solid fa-map-location-dot mr-3"></i> 30-Day Roadmap
+            </a>
+            
+            <div class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest mt-4 border-t border-white/5">The GEMS Board</div>
+            
+            <a href="#" onclick="openChat('MentorAI')" class="sidebar-link flex items-center px-6 py-4 transition">
+                <i class="fa-solid fa-user-tie text-blue-400 mr-3"></i> MentorAI
+            </a>
+            <a href="#" onclick="openChat('CoachAI')" class="sidebar-link flex items-center px-6 py-4 transition">
+                <i class="fa-solid fa-stopwatch text-green-400 mr-3"></i> CoachAI
+            </a>
+            <a href="#" onclick="openChat('MarketingAI')" class="sidebar-link flex items-center px-6 py-4 transition">
+                <i class="fa-solid fa-bullhorn text-orange-400 mr-3"></i> MarketingAI
+            </a>
+            <a href="#" onclick="openChat('LawyerAI')" class="sidebar-link flex items-center px-6 py-4 transition">
+                <i class="fa-solid fa-gavel text-slate-300 mr-3"></i> LawyerAI
+            </a>
+            <a href="#" onclick="openChat('AccountantAI')" class="sidebar-link flex items-center px-6 py-4 transition">
+                <i class="fa-solid fa-calculator text-red-400 mr-3"></i> AccountantAI
+            </a>
+            <a href="#" onclick="openChat('SecretaryAI')" class="sidebar-link flex items-center px-6 py-4 transition">
+                <i class="fa-solid fa-folder-open text-yellow-400 mr-3"></i> SecretaryAI
+            </a>
+        </nav>
+
         <div class="p-6 border-t border-white/5 space-y-4">
             <div class="flex items-center space-x-3">
                 <div id="tierBadge" class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center font-bold text-xs shadow-lg shadow-blue-500/20">F</div>
@@ -94,207 +95,131 @@
 
                 <div class="glass-panel p-8 rounded-3xl border-blue-500/20">
                     <h4 class="text-xl font-bold mb-4">Welcome back, <span id="userNameDisplay">Founder</span>.</h4>
-                    <p class="text-slate-300 leading-relaxed mb-6">The board is processing your vision for <span class="text-blue-400 font-semibold" id="ideaDisplay">Your Venture</span>. LawyerAI is currently drafting initial compliance reports while CoachAI monitors your launch metrics.</p>
+                    <p class="text-slate-300 leading-relaxed mb-6">The board is processing your vision for <span class="text-blue-400 font-semibold" id="ideaDisplay">Your Venture</span>.</p>
                     <button onclick="showSection('roadmap')" class="bg-blue-600 px-6 py-3 rounded-xl font-bold hover:bg-blue-500 transition">View My Roadmap</button>
                 </div>
             </div>
 
             <div id="roadmap" class="hidden p-8 space-y-6">
-                <div class="flex justify-between items-end mb-4">
-                    <div>
-                        <h3 class="text-2xl font-bold">The 30-Day Empire Blueprint</h3>
-                        <p class="text-slate-400">Current Phase: <span class="text-blue-400 font-bold">Foundation (Days 1-7)</span></p>
-                    </div>
-                    <div class="text-right">
-                        <span class="text-xs text-slate-500 uppercase font-bold tracking-tighter">Est. Launch Date</span>
-                        <p class="text-lg font-mono">MARCH 2026</p>
-                    </div>
-                </div>
-
+                <h3 class="text-2xl font-bold">The 30-Day Empire Blueprint</h3>
                 <div class="space-y-4">
                     <div class="glass-panel p-6 rounded-2xl border-l-4 border-blue-500 flex justify-between items-center">
                         <div>
                             <span class="text-xs font-bold text-blue-500 uppercase">Day 1: Logic Ingestion</span>
                             <h4 class="text-lg font-bold">Define Minimum Viable Product (MVP)</h4>
-                            <p class="text-slate-400 text-sm">Reviewing your core business model for scalability.</p>
                         </div>
                         <i class="fa-solid fa-circle-check text-blue-500 text-xl"></i>
-                    </div>
-                    <div class="glass-panel p-6 rounded-2xl border-l-4 border-slate-700 flex justify-between items-center opacity-70">
-                        <div>
-                            <span class="text-xs font-bold text-slate-500 uppercase">Day 2: Structural Integrity</span>
-                            <h4 class="text-lg font-bold">Entity Formation & Legal Guardrails</h4>
-                            <p class="text-slate-400 text-sm">LawyerAI generates your Operating Agreement.</p>
-                        </div>
-                        <i class="fa-solid fa-lock text-slate-600"></i>
                     </div>
                 </div>
             </div>
 
             <div id="chatArea" class="hidden p-8 flex flex-col h-full max-w-4xl mx-auto w-full">
-                <div id="chatBox" class="flex-1 glass-panel rounded-3xl p-6 mb-4 overflow-y-auto space-y-4 shadow-inner">
-                    </div>
+                <div id="chatBox" class="flex-1 glass-panel rounded-3xl p-6 mb-4 overflow-y-auto space-y-4 shadow-inner"></div>
                 <div class="flex gap-2 mb-4">
-                    <input type="text" id="chatInput" placeholder="Send instructions to your AI Agent..." class="flex-1 bg-white/5 border border-white/10 rounded-2xl px-6 py-4 outline-none focus:border-blue-500 transition">
-                    <button onclick="sendMessage()" class="bg-blue-600 px-8 rounded-2xl font-bold hover:bg-blue-500 transition"><i class="fa-solid fa-paper-plane"></i></button>
+                    <input type="text" id="chatInput" placeholder="Send instructions..." class="flex-1 bg-white/5 border border-white/10 rounded-2xl px-6 py-4 outline-none focus:border-blue-500 transition">
+                    <button onclick="sendMessage()" class="bg-blue-600 px-8 rounded-2xl font-bold hover:bg-blue-500 transition">
+                        <i class="fa-solid fa-paper-plane"></i>
+                    </button>
                 </div>
             </div>
-
         </div>
     </main>
-    <SCRIPT> 
-    /**
-     * 1. THE TRUTH-TELLER INITIALIZATION
-     */
-    (function init() {
-        const isFounder = localStorage.getItem('launchAI_GodMode') === 'true';
-        const isSubscribed = localStorage.getItem('isSubscribed') === 'true';
-        const idea = localStorage.getItem('userBusinessIdea') || "Your Venture";
 
-        // Security Check
-        if (!isFounder && !isSubscribed) {
-            window.location.href = 'index.html?access=denied';
-            return;
+    <script>
+        (function init() {
+            const isFounder = localStorage.getItem('launchAI_GodMode') === 'true';
+            const isSubscribed = localStorage.getItem('isSubscribed') === 'true';
+            const idea = localStorage.getItem('userBusinessIdea') || "Your Venture";
+
+            if (!isFounder && !isSubscribed) {
+                window.location.href = 'index.html?access=denied';
+                return;
+            }
+
+            document.getElementById('ideaDisplay').innerText = idea;
+
+            if (isFounder) {
+                document.getElementById('adminReset').classList.remove('hidden');
+                document.getElementById('userNameDisplay').innerText = "Architect";
+                document.getElementById('tierBadge').innerText = "A";
+                document.getElementById('tierBadge').classList.replace('bg-blue-600', 'bg-purple-600');
+                document.getElementById('tierName').innerText = "Architect Tier";
+            }
+            triggerInitialCritique(idea);
+        })();
+
+        async function triggerInitialCritique(idea) {
+            openChat('CoachAI');
+            const chatBox = document.getElementById('chatBox');
+            const loaderId = "loader-init";
+            chatBox.innerHTML += `<div id="${loaderId}" class="text-blue-500 text-xs animate-pulse p-2 uppercase tracking-widest font-bold">Board reviewing viability...</div>`;
+
+            try {
+                const response = await fetch('/api/architect', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: "Give me an honest, brutal 1-10 viability score.", agent: "CoachAI", idea: idea })
+                });
+                const data = await response.json();
+                document.getElementById(loaderId)?.remove();
+                chatBox.innerHTML += `<div class="bg-red-500/10 border border-red-500/20 p-4 rounded-2xl mb-4 mr-12"><p class="text-sm font-bold text-red-400 mb-1">CoachAI:</p><p class="text-slate-200">${data.text}</p></div>`;
+            } catch (err) {
+                if(document.getElementById(loaderId)) document.getElementById(loaderId).innerText = "Error connecting to GEMS.";
+            }
+            chatBox.scrollTop = chatBox.scrollHeight;
         }
 
-        // Update UI with Idea
-        document.getElementById('ideaDisplay').innerText = idea;
-
-        // God Mode / Architect UI Adjustments
-        if (isFounder) {
-            document.getElementById('adminReset').classList.remove('hidden');
-            document.getElementById('userNameDisplay').innerText = "Architect";
-            document.getElementById('tierBadge').classList.replace('bg-blue-600', 'bg-purple-600');
-            document.getElementById('tierBadge').innerText = "A";
-            document.getElementById('tierName').innerText = "Architect Tier";
+        function showSection(id) {
+            ['overview', 'roadmap', 'chatArea'].forEach(s => document.getElementById(s).classList.add('hidden'));
+            document.getElementById(id).classList.remove('hidden');
+            document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active-link'));
+            if(id !== 'chatArea') document.getElementById('link-' + id).classList.add('active-link');
+            document.getElementById('sectionTitle').innerText = id.charAt(0).toUpperCase() + id.slice(1);
         }
 
-        // Trigger the Board's first honest assessment automatically
-        triggerInitialCritique(idea);
-    })();
-
-    async function triggerInitialCritique(idea) {
-        openChat('CoachAI');
-        const chatBox = document.getElementById('chatBox');
-        const loaderId = "loader-init";
-        chatBox.innerHTML += `<div id="${loaderId}" class="text-blue-500 text-xs animate-pulse p-2 uppercase tracking-widest font-bold">Board is reviewing "${idea}" for viability...</div>`;
-
-        try {
-            const response = await fetch('/api/architect', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
-                    message: "Give me an honest, brutal 1-10 viability score for this business idea and tell me the biggest obstacle I will face.", 
-                    agent: "CoachAI", 
-                    idea: idea 
-                })
-            });
-            const data = await response.json();
-            const loader = document.getElementById(loaderId);
-            if (loader) loader.remove();
+        let currentAgent = "";
+        function openChat(agent) {
+            currentAgent = agent;
+            showSection('chatArea');
+            document.getElementById('sectionTitle').innerText = agent;
+            const chatBox = document.getElementById('chatBox');
+            let greeting = agent === 'AccountantAI' ? "Ready for fiscal audit. Should we start with **$Burn Rate$**?" : `Standing by for ${agent} protocols.`;
             
-            chatBox.innerHTML += `
-                <div class="bg-red-500/10 border border-red-500/20 p-4 rounded-2xl mb-4 mr-12 shadow-[0_0_15px_rgba(239,68,68,0.1)]">
-                    <p class="text-sm font-bold text-red-400 mb-1">CoachAI [URGENT BRIEFING]:</p>
-                    <p class="text-slate-200">${data.text}</p>
-                </div>`;
-        } catch (err) {
-            const loader = document.getElementById(loaderId);
-            if (loader) loader.innerText = "Board offline. Verify API connection.";
-        }
-        chatBox.scrollTop = chatBox.scrollHeight;
-    }
-
-    /**
-     * 2. NAVIGATION & AGENT LOGIC
-     */
-    function showSection(id) {
-        document.getElementById('overview').classList.add('hidden');
-        document.getElementById('roadmap').classList.add('hidden');
-        document.getElementById('chatArea').classList.add('hidden');
-        document.getElementById(id).classList.remove('hidden');
-
-        document.querySelectorAll('.sidebar-link').forEach(link => link.classList.remove('active-link'));
-        const activeLink = document.getElementById('link-' + id);
-        if (activeLink) activeLink.classList.add('active-link');
-        document.getElementById('sectionTitle').innerText = id.charAt(0).toUpperCase() + id.slice(1);
-    }
-
-    let currentAgent = "";
-    function openChat(agent) {
-        currentAgent = agent;
-        showSection('chatArea');
-        document.getElementById('sectionTitle').innerText = agent;
-        const chatBox = document.getElementById('chatBox');
-        const idea = localStorage.getItem('userBusinessIdea') || 'Your Venture';
-
-        // Custom GREETINGS per Agent
-        let greeting = "";
-        if (agent === 'AccountantAI') {
-            greeting = `I am ready to run your fiscal audit. Using 2026 market projections, we need to calculate your **Target Profit Margin**. Should we start with your **$Burn Rate$** or your **$Revenue Forecast$?**`;
-        } else if (agent === 'SecretaryAI') {
-            greeting = `I am recording all Board decisions. Would you like a **Summary Report** of your current progress or should I draft a **To-Do List** based on the Coach's critique?`;
-        } else if (agent === 'MentorAI') {
-            greeting = `Welcome to the inner circle. We aren't just building a business; we're building a legacy. What is the one thing keeping you from starting today?`;
-        } else {
-            greeting = `System online. Standing by for ${agent} protocols regarding "${idea}".`;
+            chatBox.innerHTML = `<div class="bg-blue-600/10 border border-blue-500/20 p-4 rounded-2xl mb-4"><p class="text-sm font-bold text-blue-400 mb-1">${agent}:</p><p class="text-slate-200">${greeting}</p></div>`;
         }
 
-        chatBox.innerHTML = `
-            <div class="bg-blue-600/10 border border-blue-500/20 p-4 rounded-2xl mb-4">
-                <p class="text-sm font-bold text-blue-400 mb-1">${agent}:</p>
-                <p class="text-slate-200">${greeting}</p>
-            </div>`;
-    }
+        async function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const chatBox = document.getElementById('chatBox');
+            if (!input.value.trim()) return;
 
-    /**
-     * 3. MESSAGING LOGIC
-     */
-    async function sendMessage() {
-        const input = document.getElementById('chatInput');
-        const chatBox = document.getElementById('chatBox');
-        const text = input.value.trim();
-        if (!text) return;
+            const text = input.value;
+            chatBox.innerHTML += `<div class="bg-white/5 p-4 rounded-2xl text-right mb-4 ml-12"><p class="text-slate-200">${text}</p></div>`;
+            input.value = "";
+            chatBox.scrollTop = chatBox.scrollHeight;
 
-        chatBox.innerHTML += `<div class="bg-white/5 p-4 rounded-2xl text-right mb-4 ml-12"><p class="text-slate-200">${text}</p></div>`;
-        input.value = "";
-        chatBox.scrollTop = chatBox.scrollHeight;
+            const loaderId = "loader-" + Date.now();
+            chatBox.innerHTML += `<div id="${loaderId}" class="text-blue-500 text-xs animate-pulse p-2 uppercase">Processing...</div>`;
 
-        const loaderId = "loader-" + Date.now();
-        chatBox.innerHTML += `<div id="${loaderId}" class="text-blue-500 text-xs animate-pulse p-2 uppercase tracking-widest font-bold">GEMS Board processing...</div>`;
-
-        try {
-            const response = await fetch('/api/architect', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ message: text, agent: currentAgent, idea: localStorage.getItem('userBusinessIdea') })
-            });
-            const data = await response.json();
-            const loader = document.getElementById(loaderId);
-            if (loader) loader.remove();
-            
-            chatBox.innerHTML += `
-                <div class="bg-blue-600/10 border border-blue-500/20 p-4 rounded-2xl mb-4 mr-12">
-                    <p class="text-sm font-bold text-blue-400 mb-1">${currentAgent}:</p>
-                    <p class="text-slate-200">${data.text}</p>
-                </div>`;
-        } catch (err) {
-            const loader = document.getElementById(loaderId);
-            if (loader) loader.innerHTML = "<span class='text-red-500'>Board offline. Verify API.</span>";
+            try {
+                const response = await fetch('/api/architect', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: text, agent: currentAgent, idea: localStorage.getItem('userBusinessIdea') })
+                });
+                const data = await response.json();
+                document.getElementById(loaderId)?.remove();
+                chatBox.innerHTML += `<div class="bg-blue-600/10 border border-blue-500/20 p-4 rounded-2xl mb-4 mr-12"><p class="text-sm font-bold text-blue-400 mb-1">${currentAgent}:</p><p class="text-slate-200">${data.text}</p></div>`;
+            } catch (err) {
+                document.getElementById(loaderId).innerText = "Offline.";
+            }
+            chatBox.scrollTop = chatBox.scrollHeight;
         }
-        chatBox.scrollTop = chatBox.scrollHeight;
-    }
 
-    function adminReset() {
-        if (confirm("Developer Alert: This will wipe your local access tokens and reset the app. Continue?")) {
-            localStorage.clear();
-            window.location.href = 'index.html';
+        function adminReset() {
+            if (confirm("Reset App?")) { localStorage.clear(); window.location.href = 'index.html'; }
         }
-    }
-
-    document.getElementById('chatInput').addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
-    </SCRIPT>
-
-   
+        document.getElementById('chatInput').addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
+    </script>
 </body>
 </html>
