@@ -92,44 +92,85 @@
     </main>
 
     <script>
-        function showSection(id) {
-            document.getElementById('overview').classList.add('hidden');
-            document.getElementById('chatArea').classList.add('hidden');
-            document.getElementById(id).classList.remove('hidden');
-            document.getElementById('sectionTitle').innerText = id.charAt(0).toUpperCase() + id.slice(1);
-        }
+    let currentAgent = "Architect"; // Default starting agent
 
-        let currentAgent = "";
-        function openChat(agent) {
-            currentAgent = agent;
-            showSection('chatArea');
-            document.getElementById('sectionTitle').innerText = agent;
-            const chatBox = document.getElementById('chatBox');
-            chatBox.innerHTML = `<div class="bg-blue-600/10 border border-blue-500/20 p-4 rounded-2xl">
-                <p class="text-sm font-bold text-blue-400 mb-1">${agent}:</p>
-                <p class="text-slate-200">Standing by, Founder. I've analyzed your project. What are our next steps?</p>
-            </div>`;
-        }
+    function showSection(id) {
+        document.getElementById('overview').classList.add('hidden');
+        document.getElementById('chatArea').classList.add('hidden');
+        document.getElementById(id).classList.remove('hidden');
+        document.getElementById('sectionTitle').innerText = id.charAt(0).toUpperCase() + id.slice(1);
+    }
 
-        function sendMessage() {
-            const input = document.getElementById('chatInput');
-            const chatBox = document.getElementById('chatBox');
-            if(!input.value) return;
+    function openChat(agent) {
+        currentAgent = agent;
+        showSection('chatArea');
+        document.getElementById('sectionTitle').innerText = agent;
+        const chatBox = document.getElementById('chatBox');
+        chatBox.innerHTML = `<div class="bg-blue-600/10 border border-blue-500/20 p-4 rounded-2xl mb-4">
+            <p class="text-sm font-bold text-blue-400 mb-1">${agent}:</p>
+            <p class="text-slate-200">I am logged in and ready. What's the directive?</p>
+        </div>`;
+    }
 
-            chatBox.innerHTML += `<div class="bg-white/5 p-4 rounded-2xl text-right">
-                <p class="text-slate-200">${input.value}</p>
+    async function sendMessage() {
+        const input = document.getElementById('chatInput');
+        const chatBox = document.getElementById('chatBox');
+        const userText = input.value;
+        const concept = "User Business Idea"; // Replace with your variable if you have one
+
+        if(!userText) return;
+
+        // 1. Display User Message
+        chatBox.innerHTML += `<div class="bg-white/5 p-4 rounded-2xl text-right mb-4">
+            <p class="text-slate-200">${userText}</p>
+        </div>`;
+        input.value = "";
+        chatBox.scrollTop = chatBox.scrollHeight;
+
+        // 2. Show "Thinking" State
+        const loadingId = "loading-" + Date.now();
+        chatBox.innerHTML += `<div id="${loadingId}" class="bg-blue-600/5 p-4 rounded-2xl mb-4 animate-pulse">
+            <p class="text-xs text-blue-500 italic uppercase">Orchestrator: Routing to the Board...</p>
+        </div>`;
+
+        try {
+            // 3. THE REAL CALL: Talk to your Vercel API
+            const response = await fetch('/api/architect', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    message: userText,
+                    idea: concept,
+                    day: 1
+                })
+            });
+
+            const data = await response.json();
+            
+            // Remove loading state
+            document.getElementById(loadingId).remove();
+
+            // 4. AUTOMATIC TRIAGE: Update the UI to show which GEM answered
+            currentAgent = data.role; 
+            document.getElementById('sectionTitle').innerText = currentAgent;
+
+            // 5. Display Real AI Response
+            chatBox.innerHTML += `<div class="bg-blue-600/10 border border-blue-500/20 p-4 rounded-2xl mb-4">
+                <p class="text-sm font-bold text-blue-400 mb-1">${data.role}:</p>
+                <p class="text-slate-200">${data.text}</p>
             </div>`;
             
-            // Fake AI Response
-            setTimeout(() => {
-                chatBox.innerHTML += `<div class="bg-blue-600/10 border border-blue-500/20 p-4 rounded-2xl">
-                    <p class="text-sm font-bold text-blue-400 mb-1">${currentAgent}:</p>
-                    <p class="text-slate-200">Understood. I'm processing those instructions now. I will update the roadmap once complete.</p>
-                </div>`;
-                chatBox.scrollTop = chatBox.scrollHeight;
-            }, 1000);
-            input.value = "";
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+        } catch (error) {
+            document.getElementById(loadingId).innerHTML = `<p class="text-red-500 text-xs">Error: Board connection offline. Check Vercel logs.</p>`;
         }
-    </script>
+    }
+
+    // Allow "Enter" key to send message
+    document.getElementById('chatInput').addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') sendMessage();
+    });
+</script>
 </body>
 </html>
