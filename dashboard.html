@@ -92,36 +92,53 @@
     </main>
 
     <script>
-    let currentAgent = "Architect"; // Default starting agent
-        // 1. The Global Check
-function checkSubscription() {
-    const isFounder = localStorage.getItem('launchAI_GodMode') === 'true';
-    const isSubscribed = localStorage.getItem('isSubscribed') === 'true';
+    // --- 1. THE BOUNCER (Security Gate) ---
+    (function() {
+        // Check if coming back from Stripe (Success)
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('session') === 'success') {
+            localStorage.setItem('isSubscribed', 'true');
+        }
 
-    if (isFounder || isSubscribed) {
-        console.log("Access Granted: Founder/Subscriber Status Confirmed.");
-        return true;
-    } else {
-        // Redirect to paywall or show lock
-        alert("Please subscribe to access the Board of Directors.");
-        return false;
-    }
-}
+        const isFounder = localStorage.getItem('launchAI_GodMode') === 'true';
+        const isSubscribed = localStorage.getItem('isSubscribed') === 'true';
 
-// 2. HOW TO ACTIVATE GOD MODE (For You Only)
-// Open your browser console (F12) on your site and type:
-// activateGodMode()
-function activateGodMode() {
-    localStorage.setItem('launchAI_GodMode', 'true');
-    console.log("GOD MODE ACTIVE. Subscription bypass engaged.");
-    location.reload();
-}
+        // If not verified, kick back to landing page
+        if (!isFounder && !isSubscribed) {
+            window.location.href = 'index.html?access=denied';
+        }
+    })();
+
+    // --- 2. GLOBAL FOUNDER UTILITIES ---
+    window.activateGodMode = function() {
+        localStorage.setItem('launchAI_GodMode', 'true');
+        console.log("🔓 GOD MODE ACTIVE.");
+        alert("Founder status confirmed. Welcome, Architect.");
+        location.reload();
+    };
+
+    window.deactivateGodMode = function() {
+        localStorage.removeItem('launchAI_GodMode');
+        localStorage.removeItem('isSubscribed');
+        location.reload();
+    };
+
+    // --- 3. DASHBOARD LOGIC ---
+    let currentAgent = "Architect"; 
+    // Pull the idea from localStorage (saved from your landing page)
+    const concept = localStorage.getItem('userBusinessIdea') || "New Venture";
 
     function showSection(id) {
+        // Hide all major sections
         document.getElementById('overview').classList.add('hidden');
         document.getElementById('chatArea').classList.add('hidden');
-        document.getElementById(id).classList.remove('hidden');
-        document.getElementById('sectionTitle').innerText = id.charAt(0).toUpperCase() + id.slice(1);
+        
+        // Handle optional sections if they exist (like roadmap)
+        const target = document.getElementById(id);
+        if(target) {
+            target.classList.remove('hidden');
+            document.getElementById('sectionTitle').innerText = id.charAt(0).toUpperCase() + id.slice(1);
+        }
     }
 
     function openChat(agent) {
@@ -129,35 +146,38 @@ function activateGodMode() {
         showSection('chatArea');
         document.getElementById('sectionTitle').innerText = agent;
         const chatBox = document.getElementById('chatBox');
-        chatBox.innerHTML = `<div class="bg-blue-600/10 border border-blue-500/20 p-4 rounded-2xl mb-4">
-            <p class="text-sm font-bold text-blue-400 mb-1">${agent}:</p>
-            <p class="text-slate-200">I am logged in and ready. What's the directive?</p>
-        </div>`;
+        chatBox.innerHTML = `
+            <div class="bg-blue-600/10 border border-blue-500/20 p-4 rounded-2xl mb-4">
+                <p class="text-sm font-bold text-blue-400 mb-1">${agent}:</p>
+                <p class="text-slate-200">I am logged in and ready. What's the directive for ${concept}?</p>
+            </div>`;
     }
 
     async function sendMessage() {
         const input = document.getElementById('chatInput');
         const chatBox = document.getElementById('chatBox');
         const userText = input.value;
-        const concept = "User Business Idea"; // Replace with your variable if you have one
 
         if(!userText) return;
 
-        // 1. Display User Message
-        chatBox.innerHTML += `<div class="bg-white/5 p-4 rounded-2xl text-right mb-4">
-            <p class="text-slate-200">${userText}</p>
-        </div>`;
+        // Display User Message
+        chatBox.innerHTML += `
+            <div class="bg-white/5 p-4 rounded-2xl text-right mb-4 ml-12">
+                <p class="text-slate-200">${userText}</p>
+            </div>`;
+        
         input.value = "";
         chatBox.scrollTop = chatBox.scrollHeight;
 
-        // 2. Show "Thinking" State
+        // Show "Thinking" State
         const loadingId = "loading-" + Date.now();
-        chatBox.innerHTML += `<div id="${loadingId}" class="bg-blue-600/5 p-4 rounded-2xl mb-4 animate-pulse">
-            <p class="text-xs text-blue-500 italic uppercase">Orchestrator: Routing to the Board...</p>
-        </div>`;
+        chatBox.innerHTML += `
+            <div id="${loadingId}" class="bg-blue-600/5 p-4 rounded-2xl mb-4 animate-pulse">
+                <p class="text-xs text-blue-500 italic uppercase">Orchestrator: Routing to the Board...</p>
+            </div>`;
 
         try {
-            // 3. THE REAL CALL: Talk to your Vercel API
+            // THE REAL CALL: Talk to your Vercel API
             const response = await fetch('/api/architect', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -173,24 +193,27 @@ function activateGodMode() {
             // Remove loading state
             document.getElementById(loadingId).remove();
 
-            // 4. AUTOMATIC TRIAGE: Update the UI to show which GEM answered
+            // AUTOMATIC TRIAGE: Update UI if the GEM switched
             currentAgent = data.role; 
             document.getElementById('sectionTitle').innerText = currentAgent;
 
-            // 5. Display Real AI Response
-            chatBox.innerHTML += `<div class="bg-blue-600/10 border border-blue-500/20 p-4 rounded-2xl mb-4">
-                <p class="text-sm font-bold text-blue-400 mb-1">${data.role}:</p>
-                <p class="text-slate-200">${data.text}</p>
-            </div>`;
+            // Display Real AI Response
+            chatBox.innerHTML += `
+                <div class="bg-blue-600/10 border border-blue-500/20 p-4 rounded-2xl mb-4 mr-12">
+                    <p class="text-sm font-bold text-blue-400 mb-1">${data.role}:</p>
+                    <p class="text-slate-200">${data.text}</p>
+                </div>`;
             
             chatBox.scrollTop = chatBox.scrollHeight;
 
         } catch (error) {
-            document.getElementById(loadingId).innerHTML = `<p class="text-red-500 text-xs">Error: Board connection offline. Check Vercel logs.</p>`;
+            if(document.getElementById(loadingId)) {
+                document.getElementById(loadingId).innerHTML = `<p class="text-red-500 text-xs">Error: Board connection offline. Check Vercel logs.</p>`;
+            }
         }
     }
 
-    // Allow "Enter" key to send message
+    // Support Enter Key
     document.getElementById('chatInput').addEventListener('keypress', function (e) {
         if (e.key === 'Enter') sendMessage();
     });
