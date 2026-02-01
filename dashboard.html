@@ -10,6 +10,9 @@
         .sidebar-link:hover { background: rgba(59, 130, 246, 0.1); color: #60a5fa; }
         .active-link { background: rgba(59, 130, 246, 0.2); color: #60a5fa; border-right: 4px solid #3b82f6; }
         .glass-panel { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.05); }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
     </style>
 </head>
 <body class="bg-slate-950 text-white font-sans flex h-screen overflow-hidden">
@@ -20,12 +23,13 @@
         </div>
         
         <nav class="flex-1 mt-6 space-y-1">
-            <a href="#" onclick="showSection('overview')" class="sidebar-link active-link flex items-center px-6 py-4 transition">
+            <a href="#" id="link-overview" onclick="showSection('overview')" class="sidebar-link active-link flex items-center px-6 py-4 transition">
                 <i class="fa-solid fa-chart-line mr-3"></i> Mission Control
             </a>
-            <a href="#" onclick="showSection('roadmap')" class="sidebar-link flex items-center px-6 py-4 transition">
+            <a href="#" id="link-roadmap" onclick="showSection('roadmap')" class="sidebar-link flex items-center px-6 py-4 transition">
                 <i class="fa-solid fa-map-location-dot mr-3"></i> 30-Day Roadmap
             </a>
+            
             <div class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest mt-4">The GEMS Board</div>
             <a href="#" onclick="openChat('CoachAI')" class="sidebar-link flex items-center px-6 py-4 transition">
                 <i class="fa-solid fa-stopwatch text-green-400 mr-3"></i> CoachAI
@@ -38,15 +42,19 @@
             </a>
         </nav>
 
-        <div class="p-6 border-t border-white/5">
+        <div class="p-6 border-t border-white/5 space-y-4">
             <div class="flex items-center space-x-3">
-                <div class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center font-bold text-xs">F</div>
-                <div class="text-sm font-medium">Founder Tier</div>
+                <div id="tierBadge" class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center font-bold text-xs shadow-lg shadow-blue-500/20">F</div>
+                <div class="text-sm font-medium" id="tierName">Founder Tier</div>
             </div>
+            
+            <button id="adminReset" onclick="adminReset()" class="hidden w-full py-2 border border-red-500/30 rounded-lg text-[10px] text-red-500 hover:bg-red-500/10 uppercase font-bold tracking-tighter transition">
+                Reset App Authority
+            </button>
         </div>
     </aside>
 
-    <main class="flex-1 flex flex-col overflow-y-auto bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-slate-900 via-slate-950 to-slate-950">
+    <main class="flex-1 flex flex-col overflow-hidden bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-slate-900 via-slate-950 to-slate-950">
         
         <header class="h-16 border-b border-white/5 flex items-center justify-between px-8 bg-slate-950/50 backdrop-blur-sm sticky top-0 z-10">
             <h2 id="sectionTitle" class="text-lg font-semibold text-slate-200">Mission Control</h2>
@@ -56,172 +64,183 @@
             </div>
         </header>
 
-        <div id="overview" class="p-8 space-y-8">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div class="glass-panel p-6 rounded-2xl">
-                    <p class="text-slate-400 text-sm mb-1">Launch Progress</p>
-                    <h3 class="text-3xl font-bold text-blue-400">12%</h3>
-                    <div class="w-full bg-slate-800 h-2 rounded-full mt-4"><div class="bg-blue-500 h-2 rounded-full w-[12%]"></div></div>
+        <div class="flex-1 overflow-y-auto">
+            
+            <div id="overview" class="p-8 space-y-8 animate-in fade-in duration-500">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="glass-panel p-6 rounded-2xl">
+                        <p class="text-slate-400 text-sm mb-1">Launch Progress</p>
+                        <h3 class="text-3xl font-bold text-blue-400">12%</h3>
+                        <div class="w-full bg-slate-800 h-2 rounded-full mt-4"><div class="bg-blue-500 h-2 rounded-full w-[12%]"></div></div>
+                    </div>
+                    <div class="glass-panel p-6 rounded-2xl">
+                        <p class="text-slate-400 text-sm mb-1">AI Tasks Completed</p>
+                        <h3 class="text-3xl font-bold text-green-400">4 / 32</h3>
+                    </div>
+                    <div class="glass-panel p-6 rounded-2xl">
+                        <p class="text-slate-400 text-sm mb-1">Market Sentiment</p>
+                        <h3 class="text-3xl font-bold text-purple-400">Bullish</h3>
+                    </div>
                 </div>
-                <div class="glass-panel p-6 rounded-2xl">
-                    <p class="text-slate-400 text-sm mb-1">AI Tasks Completed</p>
-                    <h3 class="text-3xl font-bold text-green-400">4 / 32</h3>
-                </div>
-                <div class="glass-panel p-6 rounded-2xl">
-                    <p class="text-slate-400 text-sm mb-1">Market Sentiment</p>
-                    <h3 class="text-3xl font-bold text-purple-400">Bullish</h3>
+
+                <div class="glass-panel p-8 rounded-3xl border-blue-500/20">
+                    <h4 class="text-xl font-bold mb-4">Welcome back, <span id="userNameDisplay">Founder</span>.</h4>
+                    <p class="text-slate-300 leading-relaxed mb-6">The board is processing your vision for <span class="text-blue-400 font-semibold" id="ideaDisplay">Your Venture</span>. LawyerAI is currently drafting initial compliance reports while CoachAI monitors your launch metrics.</p>
+                    <button onclick="showSection('roadmap')" class="bg-blue-600 px-6 py-3 rounded-xl font-bold hover:bg-blue-500 transition">View My Roadmap</button>
                 </div>
             </div>
 
-            <div class="glass-panel p-8 rounded-3xl border-blue-500/20">
-                <h4 class="text-xl font-bold mb-4">Welcome, Founder.</h4>
-                <p class="text-slate-300 leading-relaxed mb-6">Your business idea has been ingested. The Orchestrator is currently delegating initial legal and market research tasks to the GEMS board. Use the sidebar to interact with your team.</p>
-                <button onclick="showSection('roadmap')" class="bg-blue-600 px-6 py-3 rounded-xl font-bold hover:bg-blue-500 transition">View My Roadmap</button>
+            <div id="roadmap" class="hidden p-8 space-y-6">
+                <div class="flex justify-between items-end mb-4">
+                    <div>
+                        <h3 class="text-2xl font-bold">The 30-Day Empire Blueprint</h3>
+                        <p class="text-slate-400">Current Phase: <span class="text-blue-400 font-bold">Foundation (Days 1-7)</span></p>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-xs text-slate-500 uppercase font-bold tracking-tighter">Est. Launch Date</span>
+                        <p class="text-lg font-mono">MARCH 2026</p>
+                    </div>
+                </div>
+
+                <div class="space-y-4">
+                    <div class="glass-panel p-6 rounded-2xl border-l-4 border-blue-500 flex justify-between items-center">
+                        <div>
+                            <span class="text-xs font-bold text-blue-500 uppercase">Day 1: Logic Ingestion</span>
+                            <h4 class="text-lg font-bold">Define Minimum Viable Product (MVP)</h4>
+                            <p class="text-slate-400 text-sm">Reviewing your core business model for scalability.</p>
+                        </div>
+                        <i class="fa-solid fa-circle-check text-blue-500 text-xl"></i>
+                    </div>
+                    <div class="glass-panel p-6 rounded-2xl border-l-4 border-slate-700 flex justify-between items-center opacity-70">
+                        <div>
+                            <span class="text-xs font-bold text-slate-500 uppercase">Day 2: Structural Integrity</span>
+                            <h4 class="text-lg font-bold">Entity Formation & Legal Guardrails</h4>
+                            <p class="text-slate-400 text-sm">LawyerAI generates your Operating Agreement.</p>
+                        </div>
+                        <i class="fa-solid fa-lock text-slate-600"></i>
+                    </div>
+                </div>
             </div>
+
+            <div id="chatArea" class="hidden p-8 flex flex-col h-full max-w-4xl mx-auto w-full">
+                <div id="chatBox" class="flex-1 glass-panel rounded-3xl p-6 mb-4 overflow-y-auto space-y-4 shadow-inner">
+                    </div>
+                <div class="flex gap-2 mb-4">
+                    <input type="text" id="chatInput" placeholder="Send instructions to your AI Agent..." class="flex-1 bg-white/5 border border-white/10 rounded-2xl px-6 py-4 outline-none focus:border-blue-500 transition">
+                    <button onclick="sendMessage()" class="bg-blue-600 px-8 rounded-2xl font-bold hover:bg-blue-500 transition"><i class="fa-solid fa-paper-plane"></i></button>
+                </div>
+            </div>
+
         </div>
-
-        <div id="chatArea" class="hidden p-8 flex flex-col h-full max-w-4xl mx-auto w-full">
-            <div id="chatBox" class="flex-1 glass-panel rounded-3xl p-6 mb-4 overflow-y-auto space-y-4">
-                </div>
-            <div class="flex gap-2">
-                <input type="text" id="chatInput" placeholder="Send instructions to your AI Agent..." class="flex-1 bg-white/5 border border-white/10 rounded-2xl px-6 py-4 outline-none focus:border-blue-500 transition">
-                <button onclick="sendMessage()" class="bg-blue-600 px-8 rounded-2xl font-bold hover:bg-blue-500"><i class="fa-solid fa-paper-plane"></i></button>
-            </div>
-        </div>
-
     </main>
 
     <script>
-    /**
-     * 1. THE BOUNCER & DATA INITIALIZATION
-     * This runs immediately before the page even finishes rendering.
-     */
-    (function() {
-        // A. Check for Stripe Success return
-        const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.get('session') === 'success') {
-            localStorage.setItem('isSubscribed', 'true');
-        }
+        /**
+         * 1. THE BOUNCER & AUTH
+         */
+        (function init() {
+            const isFounder = localStorage.getItem('launchAI_GodMode') === 'true';
+            const isSubscribed = localStorage.getItem('isSubscribed') === 'true';
+            const idea = localStorage.getItem('userBusinessIdea') || "Your Venture";
 
-        // B. Check Authorization Status
-        const isFounder = localStorage.getItem('launchAI_GodMode') === 'true';
-        const isSubscribed = localStorage.getItem('isSubscribed') === 'true';
+            // Kick out unauthorized users
+            if (!isFounder && !isSubscribed) {
+                window.location.href = 'index.html?access=denied';
+                return;
+            }
 
-        // C. The Security Gate
-        if (!isFounder && !isSubscribed) {
-            console.error("Unauthorized access attempt.");
-            window.location.href = 'index.html?error=no_access';
-            return;
-        }
+            // Populate Idea text
+            document.getElementById('ideaDisplay').innerText = idea;
 
-        console.log(isFounder ? "Welcome, Founder." : "Subscriber verified.");
-    })();
+            // God Mode Check: Show Reset Button & Change Tier Label
+            if (isFounder) {
+                document.getElementById('adminReset').classList.remove('hidden');
+                document.getElementById('userNameDisplay').innerText = "Architect";
+                document.getElementById('tierBadge').classList.replace('bg-blue-600', 'bg-purple-600');
+                document.getElementById('tierBadge').innerText = "A";
+                document.getElementById('tierName').innerText = "Architect Tier";
+            }
+        })();
 
-    /**
-     * 2. CORE DASHBOARD STATE
-     */
-    let currentAgent = "Architect";
-    // Pull the idea you typed on the landing page
-    const concept = localStorage.getItem('userBusinessIdea') || "Your Venture";
+        /**
+         * 2. NAVIGATION
+         */
+        function showSection(id) {
+            // Manage Content Visibility
+            document.getElementById('overview').classList.add('hidden');
+            document.getElementById('roadmap').classList.add('hidden');
+            document.getElementById('chatArea').classList.add('hidden');
+            document.getElementById(id).classList.remove('hidden');
 
-    /**
-     * 3. NAVIGATION & UI LOGIC
-     */
-    function showSection(id) {
-        // Hide major containers
-        document.getElementById('overview').classList.add('hidden');
-        document.getElementById('chatArea').classList.add('hidden');
-        
-        // Show target container
-        const target = document.getElementById(id);
-        if (target) {
-            target.classList.remove('hidden');
+            // Manage Sidebar Active State
+            document.querySelectorAll('.sidebar-link').forEach(link => link.classList.remove('active-link'));
+            const activeLink = document.getElementById('link-' + id);
+            if (activeLink) activeLink.classList.add('active-link');
+
             document.getElementById('sectionTitle').innerText = id.charAt(0).toUpperCase() + id.slice(1);
         }
-    }
 
-    function openChat(agent) {
-        currentAgent = agent;
-        showSection('chatArea');
-        document.getElementById('sectionTitle').innerText = agent;
-        
-        const chatBox = document.getElementById('chatBox');
-        chatBox.innerHTML = `
-            <div class="bg-blue-600/10 border border-blue-500/20 p-4 rounded-2xl mb-4">
-                <p class="text-sm font-bold text-blue-400 mb-1">${agent}:</p>
-                <p class="text-slate-200">System online. How shall we proceed with the ${concept} deployment?</p>
-            </div>`;
-    }
-
-    /**
-     * 4. AI COMMUNICATION (VERCEL API)
-     */
-    async function sendMessage() {
-        const input = document.getElementById('chatInput');
-        const chatBox = document.getElementById('chatBox');
-        const userText = input.value.trim();
-
-        if (!userText) return;
-
-        // Display User Message
-        chatBox.innerHTML += `
-            <div class="bg-white/5 p-4 rounded-2xl text-right mb-4 ml-12">
-                <p class="text-slate-200">${userText}</p>
-            </div>`;
-        
-        input.value = "";
-        chatBox.scrollTop = chatBox.scrollHeight;
-
-        // Display Loading State
-        const loadingId = "loading-" + Date.now();
-        chatBox.innerHTML += `
-            <div id="${loadingId}" class="bg-blue-600/5 p-4 rounded-2xl mb-4 animate-pulse">
-                <p class="text-xs text-blue-500 italic uppercase">Routing to the Board...</p>
-            </div>`;
-
-        try {
-            const response = await fetch('/api/architect', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    message: userText,
-                    idea: concept,
-                    role: currentAgent, // Pass the selected GEM to the AI
-                    day: 1
-                })
-            });
-
-            const data = await response.json();
-            document.getElementById(loadingId).remove();
-
-            // Display AI Response
-            chatBox.innerHTML += `
-                <div class="bg-blue-600/10 border border-blue-500/20 p-4 rounded-2xl mb-4 mr-12">
-                    <p class="text-sm font-bold text-blue-400 mb-1">${data.role || currentAgent}:</p>
-                    <p class="text-slate-200">${data.text}</p>
-                </div>`;
+        let currentAgent = "";
+        function openChat(agent) {
+            currentAgent = agent;
+            showSection('chatArea');
+            document.getElementById('sectionTitle').innerText = agent;
             
+            const chatBox = document.getElementById('chatBox');
+            chatBox.innerHTML = `
+                <div class="bg-blue-600/10 border border-blue-500/20 p-4 rounded-2xl mb-4">
+                    <p class="text-sm font-bold text-blue-400 mb-1">${agent}:</p>
+                    <p class="text-slate-200">System online. Standing by for ${agent} protocols regarding "${localStorage.getItem('userBusinessIdea')}".</p>
+                </div>`;
+        }
+
+        /**
+         * 3. MESSAGING LOGIC
+         */
+        async function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const chatBox = document.getElementById('chatBox');
+            const text = input.value.trim();
+            if (!text) return;
+
+            // Add User Message UI
+            chatBox.innerHTML += `<div class="bg-white/5 p-4 rounded-2xl text-right mb-4 ml-12"><p class="text-slate-200">${text}</p></div>`;
+            input.value = "";
             chatBox.scrollTop = chatBox.scrollHeight;
 
-        } catch (error) {
-            console.error("API Error:", error);
-            const loadingEl = document.getElementById(loadingId);
-            if (loadingEl) {
-                loadingEl.innerHTML = `<p class="text-red-500 text-xs text-center font-bold">Board Connection Error. Verify Vercel API deployment.</p>`;
-                loadingEl.classList.remove('animate-pulse');
+            // Loading UI
+            const loaderId = "loader-" + Date.now();
+            chatBox.innerHTML += `<div id="${loaderId}" class="text-blue-500 text-xs animate-pulse p-2 uppercase tracking-widest font-bold">Connecting to Board...</div>`;
+
+            try {
+                // Change to your actual Vercel/API URL
+                const response = await fetch('/api/architect', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: text, agent: currentAgent, idea: localStorage.getItem('userBusinessIdea') })
+                });
+                const data = await response.json();
+                document.getElementById(loaderId).remove();
+                
+                chatBox.innerHTML += `<div class="bg-blue-600/10 border border-blue-500/20 p-4 rounded-2xl mb-4 mr-12"><p class="text-sm font-bold text-blue-400 mb-1">${currentAgent}:</p><p class="text-slate-200">${data.text}</p></div>`;
+            } catch (err) {
+                document.getElementById(loaderId).innerHTML = "<span class='text-red-500'>Board offline. Verify API.</span>";
+            }
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        /**
+         * 4. ADMIN TOOLS
+         */
+        function adminReset() {
+            if (confirm("Developer Alert: This will wipe your local access tokens and reset the app. Continue?")) {
+                localStorage.clear();
+                window.location.href = 'index.html';
             }
         }
-    }
 
-    // Enter Key Listener
-    document.addEventListener('DOMContentLoaded', () => {
-        const chatInput = document.getElementById('chatInput');
-        if (chatInput) {
-            chatInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') sendMessage();
-            });
-        }
-    });
-</script>
+        // Handle Enter Key
+        document.getElementById('chatInput').addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
+    </script>
 </body>
 </html>
