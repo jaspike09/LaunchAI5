@@ -163,35 +163,34 @@
     </footer>
 
     <script>
-    // 1. THE GOD MODE ACTIVATOR
+    <script>
+    // FORCE GLOBAL SCOPE: This ensures F12 console always finds it
     window.activateGodMode = function() {
         localStorage.setItem('launchAI_GodMode', 'true');
         console.log("🔓 GOD MODE ACTIVE.");
-        alert("Founder status confirmed. You now have permanent access to all GEMS.");
+        alert("Founder status confirmed. Paywall bypassed.");
     };
 
-    // 2. THE MASTER GATEKEEPER (Replaces your old subscribe function)
+    // This handles the logic for your buttons
     function handleAccess(tier) {
-        // First, save the idea so the Dashboard knows what we are building
         const idea = document.getElementById('ideaInput').value;
         localStorage.setItem('userBusinessIdea', idea || "New Venture");
 
-        // Check if YOU are the Founder
         const isFounder = localStorage.getItem('launchAI_GodMode') === 'true';
 
         if (isFounder) {
-            console.log("Founder detected. Bypassing Stripe...");
             window.location.href = 'dashboard.html';
         } else {
-            console.log("Customer detected. Redirecting to Stripe...");
-            // Route to the correct Stripe link based on tier
+            // Redirect to Stripe if they aren't you
             if (tier === 'Founder') {
                 window.location.href = "https://buy.stripe.com/dRmbJ01vhgRL8Am8WD7Re03";
-            } else if (tier === 'Growth') {
+            } else {
                 window.location.href = "https://buy.stripe.com/cNi4gy6PB8lf3g22yf7Re02";
             }
         }
     }
+    
+    // ... keep the rest of your analyzeIdea logic below
 
     // 3. THE ANALYZER LOGIC (Keep your existing animation)
     function analyzeIdea() {
