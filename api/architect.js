@@ -12,25 +12,23 @@ export default async function handler(req, res) {
   try {
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
     
-    /** * FIX: We use 'gemini-1.5-pro' which is the current 
-     * standard ID that avoids the 404 version error.
-     */
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
+    // We are using the 1.0 Pro model which has the highest 
+    // compatibility with the 'v1' API version mentioned in your error.
+    const model = genAI.getGenerativeModel({ model: "gemini-1.0-pro" });
 
-    const prompt = `
-      You are ${agent} on the GEMS Board for "${idea}".
-      Instructions: Be concise. If validating, give a score out of 100.
-      
-      User message: ${message}
-    `;
+    const prompt = `You are ${agent} on the GEMS Board for "${idea}". 
+    Validate this vision with a score out of 100 and brief feedback.
+    User input: ${message}`;
 
     const result = await model.generateContent(prompt);
-    const text = result.response.text();
+    const response = await result.response;
+    const text = response.text();
+
+    if (!text) throw new Error("Empty response from AI");
 
     res.status(200).json({ text });
   } catch (error) {
     console.error("Vercel Function Error:", error);
-    // This sends the actual error back to your browser console
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: "GEMS Board Connection Lost: " + error.message });
   }
 }
