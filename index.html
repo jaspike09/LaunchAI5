@@ -75,94 +75,56 @@
         </div>
     </main>
 
-    <script>
-        /**
-         * 1. ELEMENTS SETUP
-         */
-        const elements = {
-            ideaInput: document.getElementById('ideaInput'),
-            validateBtn: document.getElementById('validateBtn'),
-            resultsArea: document.getElementById('resultsArea'),
-            scoreText: document.getElementById('scoreText'),
-            scoreCircle: document.getElementById('scoreCircle'),
-            founderBtn: document.getElementById('founderBtn'),
-            growthBtn: document.getElementById('growthBtn'),
-            inputContainer: document.getElementById('inputContainer')
-        };
+    <script>/**
+ * 1. ELEMENTS SETUP
+ */
+const elements = {
+    ideaInput: document.getElementById('ideaInput'),
+    validateBtn: document.getElementById('validateBtn'),
+    resultsArea: document.getElementById('resultsArea'),
+    scoreText: document.getElementById('scoreText'),
+    scoreCircle: document.getElementById('scoreCircle'),
+    founderBtn: document.getElementById('founderBtn'),
+    growthBtn: document.getElementById('growthBtn'), // This is the $99 button
+    mainLogo: document.getElementById('mainLogo') // Your "LaunchAI" text
+};
 
-        // Logo click counter for God Mode Secret
-        let logoClicks = 0;
-        window.handleLogoClick = function() {
-            logoClicks++;
-            if (logoClicks === 5) {
-                localStorage.setItem('launchAI_GodMode', 'true');
-                alert("ARCHITECT ACCESS GRANTED. Stripe will be bypassed.");
-            }
-        }
+/**
+ * 2. THE ARCHITECT'S SECRET (FOR YOUR EYES ONLY)
+ * Clicking the Logo 5 times activates the bypass.
+ */
+let logoClicks = 0;
+elements.mainLogo.addEventListener('click', () => {
+    logoClicks++;
+    if (logoClicks === 5) {
+        localStorage.setItem('launchAI_GodMode', 'true');
+        alert("SECURITY BYPASS: Architect Tier Authorized.");
+        // Visually change the $99 button to show it's now a free bypass
+        elements.growthBtn.innerText = "Bypass to Auth (Free)";
+        elements.growthBtn.classList.replace('bg-blue-600', 'bg-purple-600');
+    }
+});
 
-        /**
-         * 2. ANALYSIS LOGIC
-         */
-        elements.validateBtn.addEventListener('click', () => {
-            const idea = elements.ideaInput.value.trim();
-            if (!idea) {
-                alert("Please describe your vision first!");
-                return;
-            }
+/**
+ * 3. STRIPE REDIRECT LOGIC
+ */
+function handleAccess(tier) {
+    // If you've activated the secret trick, skip Stripe
+    if (localStorage.getItem('launchAI_GodMode') === 'true') {
+        window.location.href = 'auth.html';
+        return;
+    }
 
-            // Save idea immediately
-            localStorage.setItem('userBusinessIdea', idea);
+    // Otherwise, send the customer to the real Stripe links
+    const links = {
+        'Founder': "https://buy.stripe.com/dRmbJ01vhgRL8Am8WD7Re03", // Your $39 link
+        'Growth': "https://buy.stripe.com/cNi4gy6PB8lf3g22yf7Re02"   // Your $99 link
+    };
+    window.location.href = links[tier];
+}
 
-            // UI Transitions
-            elements.validateBtn.disabled = true;
-            elements.validateBtn.innerText = "Analyzing...";
-            elements.resultsArea.classList.remove('hidden');
-            elements.resultsArea.scrollIntoView({ behavior: 'smooth', block: 'start' });
-
-            let score = 0;
-            const targetScore = Math.floor(Math.random() * 10) + 88; // Score between 88-98
-            
-            const interval = setInterval(() => {
-                if (score >= targetScore) {
-                    clearInterval(interval);
-                    document.getElementById('verdictTitle').innerText = "Verdict: High Potential";
-                    document.getElementById('verdictDesc').innerText = "Strong market signals detected. The Board is ready to deploy.";
-                    elements.validateBtn.innerText = "Re-Analyze";
-                    elements.validateBtn.disabled = false;
-                } else {
-                    score++;
-                    elements.scoreText.innerText = score;
-                    // SVG Dash offset calculation (Circumference ~553)
-                    const offset = 552.9 - (552.9 * score / 100);
-                    elements.scoreCircle.style.strokeDashoffset = offset;
-                }
-            }, 30);
-        });
-
-        /**
-         * 3. ACCESS & STRIPE LOGIC
-         */
-        function handleAccess(tier) {
-            const currentInput = elements.ideaInput.value.trim();
-            const savedIdea = localStorage.getItem('userBusinessIdea');
-            const finalIdea = currentInput || savedIdea || "New Venture";
-            
-            localStorage.setItem('userBusinessIdea', finalIdea);
-
-            // Check for God Mode Bypass
-            if (localStorage.getItem('launchAI_GodMode') === 'true') {
-                window.location.href = 'auth.html';
-            } else {
-                const links = {
-                    'Founder': "https://buy.stripe.com/dRmbJ01vhgRL8Am8WD7Re03",
-                    'Growth': "https://buy.stripe.com/cNi4gy6PB8lf3g22yf7Re02"
-                };
-                window.location.href = links[tier];
-            }
-        }
-
-        elements.founderBtn.addEventListener('click', () => handleAccess('Founder'));
-        elements.growthBtn.addEventListener('click', () => handleAccess('Growth'));
+elements.founderBtn.addEventListener('click', () => handleAccess('Founder'));
+elements.growthBtn.addEventListener('click', () => handleAccess('Growth'));
     </script>
 </body>
 </html>
