@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LaunchAI | Executive Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         .sidebar-link:hover { background: rgba(59, 130, 246, 0.1); color: #60a5fa; }
@@ -52,13 +53,16 @@
             </a>
         </nav>
 
-        <div class="p-6 border-t border-white/5 space-y-4">
-            <div class="flex items-center space-x-3">
+        <div class="p-6 border-t border-white/5 space-y-2">
+            <div class="flex items-center space-x-3 mb-4">
                 <div id="tierBadge" class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center font-bold text-xs shadow-lg shadow-blue-500/20">F</div>
                 <div class="text-sm font-medium" id="tierName">Founder Tier</div>
             </div>
             <button id="adminReset" onclick="adminReset()" class="hidden w-full py-2 border border-red-500/30 rounded-lg text-[10px] text-red-500 hover:bg-red-500/10 uppercase font-bold tracking-tighter transition">
                 Reset App Authority
+            </button>
+            <button onclick="logout()" class="w-full py-2 border border-slate-700 rounded-lg text-[10px] text-slate-400 hover:bg-white/5 uppercase font-bold tracking-tighter transition">
+                <i class="fa-solid fa-right-from-bracket mr-2"></i> Terminate Session
             </button>
         </div>
     </aside>
@@ -78,7 +82,9 @@
                     <div class="glass-panel p-6 rounded-2xl">
                         <p class="text-slate-400 text-sm mb-1">Launch Progress</p>
                         <h3 class="text-3xl font-bold text-blue-400" id="progressPctText">0%</h3>
-                        <div class="w-full bg-slate-800 h-2 rounded-full mt-4"><div id="progressBar" class="bg-blue-500 h-2 rounded-full w-0 transition-all duration-500"></div></div>
+                        <div class="w-full bg-slate-800 h-2 rounded-full mt-4">
+                            <div id="progressBar" class="bg-blue-500 h-2 rounded-full w-0 transition-all duration-500"></div>
+                        </div>
                     </div>
                     <div class="glass-panel p-6 rounded-2xl">
                         <p class="text-slate-400 text-sm mb-1">AI Tasks Completed</p>
@@ -92,15 +98,14 @@
 
                 <div class="glass-panel p-8 rounded-3xl border-blue-500/20">
                     <h4 class="text-xl font-bold mb-4">Welcome back, <span id="userNameDisplay">Founder</span>.</h4>
-                    <p class="text-slate-300 leading-relaxed mb-6">The board is processing your vision for <span class="text-blue-400 font-semibold" id="ideaDisplay">Your Venture</span>.</p>
+                    <p id="missionDisplay" class="text-slate-300 leading-relaxed mb-6">The board is processing your vision for <span class="text-blue-400 font-semibold" id="ideaDisplay">Your Venture</span>.</p>
                     <button onclick="showSection('roadmap')" class="bg-blue-600 px-6 py-3 rounded-xl font-bold hover:bg-blue-500 transition">View My Roadmap</button>
                 </div>
             </div>
 
             <div id="roadmap" class="hidden p-8 space-y-6">
                 <h3 class="text-2xl font-bold">The 30-Day Empire Blueprint</h3>
-                <div id="roadmapList" class="space-y-4">
-                    </div>
+                <div id="roadmapList" class="space-y-4"></div>
             </div>
 
             <div id="chatArea" class="hidden p-8 flex flex-col h-full max-w-4xl mx-auto w-full">
