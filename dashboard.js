@@ -1,4 +1,4 @@
-// 1. CONFIG & INITIALIZATION
+// 1. CONFIGURATION
 const SUPABASE_URL = 'https://yvgzyymjymrgjhhthgtj.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl2Z3p5eW1qeW1yZ2poaHRoZ3RqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk5OTc1MzIsImV4cCI6MjA4NTU3MzUzMn0.814FVde267XILaw-VA76Yuk6Y6BVQpCr_5fAF2KtBFw';
 const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -6,7 +6,8 @@ const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 let currentAgent = "CoachAI";
 
 /**
- * Validates session and initializes cloud data
+ * INIT: Runs when the page loads.
+ * Authenticates user and pulls ALL data from the cloud.
  */
 async function init() {
     const { data: { user } } = await _supabase.auth.getUser();
@@ -16,18 +17,19 @@ async function init() {
         return;
     }
 
-    // Update UI Profile Name
+    // UI: Set User Name
     document.getElementById('userNameDisplay').innerText = user.email.split('@')[0];
 
-    // Check for "God Mode" / Architect Tier
+    // UI: Check for God Mode (Architect Tier)
     if (localStorage.getItem('launchAI_GodMode') === 'true') {
+        const badge = document.getElementById('tierBadge');
         document.getElementById('adminReset').classList.remove('hidden');
-        document.getElementById('tierBadge').innerText = "A";
-        document.getElementById('tierBadge').className = "w-8 h-8 rounded-full bg-purple-600 flex items-center justify-center font-bold text-xs shadow-lg shadow-purple-500/20";
+        badge.innerText = "A";
+        badge.className = "w-8 h-8 rounded-full bg-purple-600 flex items-center justify-center font-bold text-xs shadow-lg shadow-purple-500/20";
         document.getElementById('tierName').innerText = "Architect Tier";
     }
 
-    // Load Data from Supabase Profiles table
+    // CLOUD LOAD: Get profile and roadmap
     const { data, error } = await _supabase
         .from('profiles')
         .select('*')
@@ -39,8 +41,11 @@ async function init() {
         if (data.mission_statement) {
             document.getElementById('missionDisplay').innerText = data.mission_statement;
         }
+        if (data.roadmap) {
+            renderRoadmap(data.roadmap);
+        }
     } else {
-        // Fallback to LocalStorage if Cloud is empty
+        // Fallback to local if brand new user
         const localIdea = localStorage.getItem('userBusinessIdea') || "Your Venture";
         document.getElementById('ideaDisplay').innerText = localIdea;
         if (localIdea !== "Your Venture") saveToCloud(localIdea, "idea");
@@ -49,7 +54,7 @@ async function init() {
     updateUIFromHistory();
 }
 
-// 2. MESSAGING LOGIC
+// 2. MESSAGING SYSTEM
 async function sendMessage() {
     const input = document.getElementById('chatInput');
     const chatBox = document.getElementById('chatBox');
@@ -61,7 +66,7 @@ async function sendMessage() {
     chatBox.scrollTop = chatBox.scrollHeight;
 
     const loaderId = "loader-" + Date.now();
-    chatBox.innerHTML += `<div id="${loaderId}" class="text-blue-500 text-xs animate-pulse p-2 uppercase">GEMS Board processing...</div>`;
+    chatBox.innerHTML += `<div id="${loaderId}" class="text-blue-500 text-xs animate-pulse p-2 uppercase">Processing...</div>`;
 
     try {
         const response = await fetch('/api/architect', {
@@ -84,17 +89,25 @@ async function sendMessage() {
         
         saveBoardContext(currentAgent, data.text);
 
-        // Auto-Sync to Cloud if Agent gives summary/mission
+        // Sync Mission Statements
         if (currentAgent === 'SecretaryAI' || currentAgent === 'CoachAI') {
             saveToCloud(data.text, "mission");
         }
+
+        // Special Detection for Roadmap JSON
+        if (data.text.includes("TASK_LIST:")) {
+            const jsonString = data.text.split("TASK_LIST:")[1];
+            const tasks = JSON.parse(jsonString);
+            syncRoadmapToCloud(tasks);
+        }
+
     } catch (err) {
-        if(document.getElementById(loaderId)) document.getElementById(loaderId).innerText = "Board Disconnected.";
+        if(document.getElementById(loaderId)) document.getElementById(loaderId).innerText = "Board Offline.";
     }
     chatBox.scrollTop = chatBox.scrollHeight;
 }
 
-// 3. DATA PERSISTENCE
+// 3. CLOUD SYNC & ROADMAP ENGINE
 async function saveToCloud(content, type = "mission") {
     const { data: { user } } = await _supabase.auth.getUser();
     if (!user) return;
@@ -103,11 +116,50 @@ async function saveToCloud(content, type = "mission") {
     if (type === "idea") updateData.business_idea = content;
     else updateData.mission_statement = content;
 
-    const { error } = await _supabase.from('profiles').upsert(updateData);
-    if (error) console.error("Cloud Error:", error.message);
-    else console.log(`✅ ${type} synced.`);
+    await _supabase.from('profiles').upsert(updateData);
 }
 
+async function syncRoadmapToCloud(tasksArray) {
+    const { data: { user } } = await _supabase.auth.getUser();
+    if (!user) return;
+
+    await _supabase.from('profiles').upsert({ 
+        id: user.id, 
+        roadmap: tasksArray, 
+        updated_at: new Date() 
+    });
+    renderRoadmap(tasksArray);
+}
+
+function renderRoadmap(tasks) {
+    const list = document.getElementById('roadmapList');
+    if (!list) return;
+    list.innerHTML = ""; 
+
+    tasks.forEach((task, index) => {
+        const isDone = task.completed;
+        list.innerHTML += `
+            <div class="glass-panel p-4 rounded-xl flex items-center justify-between border-l-4 ${isDone ? 'border-green-500 opacity-60' : 'border-blue-500'}">
+                <div class="flex items-center space-x-4">
+                    <input type="checkbox" ${isDone ? 'checked' : ''} onclick="toggleTask(${index})" class="w-5 h-5 rounded border-white/10 bg-white/5 text-blue-500">
+                    <div>
+                        <p class="font-bold ${isDone ? 'line-through text-slate-500' : 'text-white'}">${task.title}</p>
+                        <p class="text-xs text-slate-400">${task.days}</p>
+                    </div>
+                </div>
+            </div>`;
+    });
+}
+
+async function toggleTask(index) {
+    const { data: { user } } = await _supabase.auth.getUser();
+    const { data } = await _supabase.from('profiles').select('roadmap').eq('id', user.id).single();
+    let roadmap = data.roadmap;
+    roadmap[index].completed = !roadmap[index].completed;
+    syncRoadmapToCloud(roadmap);
+}
+
+// 4. UI UTILITIES
 function saveBoardContext(agent, dialogue) {
     let history = JSON.parse(localStorage.getItem('gems_history') || '[]');
     history.push({ agent, text: dialogue, timestamp: new Date().toISOString() });
@@ -119,22 +171,16 @@ function updateUIFromHistory() {
     const history = JSON.parse(localStorage.getItem('gems_history') || '[]');
     const uniqueAgents = new Set(history.map(h => h.agent)).size;
     const pct = Math.round((uniqueAgents / 6) * 100);
-
-    const bar = document.getElementById('progressBar');
-    if(bar) bar.style.width = pct + '%';
+    if(document.getElementById('progressBar')) document.getElementById('progressBar').style.width = pct + '%';
     document.getElementById('progressPctText').innerText = pct + '%';
     document.getElementById('taskCountText').innerText = `${uniqueAgents} / 6`;
 }
 
-// 4. UI ACTIONS
 function openChat(agent) {
     currentAgent = agent;
     showSection('chatArea');
     const chatBox = document.getElementById('chatBox');
-    let msg = `Agent ${agent} initialized and ready for deployment.`;
-    if(agent === 'AccountantAI') msg = "Balance sheet initialized. Define your current **runway** or **burn rate**.";
-    
-    chatBox.innerHTML = `<div class="bg-blue-600/10 border border-blue-500/20 p-4 rounded-2xl mb-4"><p class="text-sm font-bold text-blue-400 mb-1">${agent}:</p><p class="text-slate-200">${msg}</p></div>`;
+    chatBox.innerHTML = `<div class="bg-blue-600/10 border border-blue-500/20 p-4 rounded-2xl mb-4"><p class="text-sm font-bold text-blue-400 mb-1">${agent}:</p><p class="text-slate-200">Standing by. How shall we proceed?</p></div>`;
 }
 
 function showSection(id) {
@@ -143,7 +189,6 @@ function showSection(id) {
     document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active-link'));
     const link = document.getElementById('link-' + id);
     if(link) link.classList.add('active-link');
-    document.getElementById('sectionTitle').innerText = id === 'chatArea' ? currentAgent : id.charAt(0).toUpperCase() + id.slice(1);
 }
 
 async function logout() {
@@ -153,14 +198,11 @@ async function logout() {
 }
 
 function adminReset() {
-    if (confirm("Erase all data and reset authority?")) {
-        _supabase.auth.signOut().then(() => {
-            localStorage.clear();
-            window.location.href = 'index.html';
-        });
+    if (confirm("Reset everything?")) {
+        _supabase.auth.signOut().then(() => { localStorage.clear(); window.location.href = 'index.html'; });
     }
 }
 
-// 5. BOOTSTRAP
+// 5. START
 document.getElementById('chatInput').addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
 init();
