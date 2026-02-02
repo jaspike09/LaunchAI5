@@ -1,37 +1,28 @@
+const SUPABASE_URL = 'https://yvgzyymjymrgjhhthgtj.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl2Z3p5eW1qeW1yZ2poaHRoZ3RqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk5OTc1MzIsImV4cCI6MjA4NTU3MzUzMn0.814FVde267XILaw-VA76Yuk6Y6BVQpCr_5fAF2KtBFw';
+const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
 let currentAgent = "CoachAI";
 
-/**
- * 1. INITIALIZATION
- */
+// Security Check: Ensure user is logged in
+async function checkUser() {
+    const { data: { user } } = await _supabase.auth.getUser();
+    if (!user) {
+        window.location.href = 'auth.html';
+    } else {
+        document.getElementById('userNameDisplay').innerText = user.email.split('@')[0];
+    }
+}
+
 (function init() {
-    const isFounder = localStorage.getItem('launchAI_GodMode') === 'true';
-    const isSubscribed = localStorage.getItem('isSubscribed') === 'true';
+    checkUser();
     const idea = localStorage.getItem('userBusinessIdea') || "Your Venture";
-
-    if (!isFounder && !isSubscribed) {
-        window.location.href = 'index.html?access=denied';
-        return;
-    }
-
     document.getElementById('ideaDisplay').innerText = idea;
-
-    if (isFounder) {
-        document.getElementById('adminReset').classList.remove('hidden');
-        document.getElementById('userNameDisplay').innerText = "Architect";
-        const badge = document.getElementById('tierBadge');
-        badge.innerText = "A";
-        badge.classList.replace('bg-blue-600', 'bg-purple-600');
-        document.getElementById('tierName').innerText = "Architect Tier";
-    }
-    
-    // Check for existing progress on load
     updateUIFromHistory();
-    triggerInitialCritique(idea);
 })();
 
-/**
- * 2. CORE MESSAGING
- */
+// ... (Rest of your sendMessage, openChat, and updateUI functions here) ...
+
 async function sendMessage() {
     const input = document.getElementById('chatInput');
     const chatBox = document.getElementById('chatBox');
@@ -58,79 +49,13 @@ async function sendMessage() {
         const data = await response.json();
         document.getElementById(loaderId)?.remove();
 
-        chatBox.innerHTML += `<div class="bg-blue-600/10 border border-blue-500/20 p-4 rounded-2xl mb-4 mr-12"><p class="text-sm font-bold text-blue-400 mb-1">${currentAgent}:</p><p class="text-slate-200">${data.text}</p></div>`;
+        chatBox.innerHTML += `<div class="bg-blue-600/10 border border-blue-500/20 p-4 rounded-2xl mb-4 mr-12">
+            <p class="text-sm font-bold text-blue-400 mb-1">${currentAgent}:</p>
+            <p class="text-slate-200">${data.text}</p>
+        </div>`;
         
         saveBoardContext(currentAgent, data.text);
-
     } catch (err) {
-        const loader = document.getElementById(loaderId);
-        if(loader) loader.innerText = "Connection lost. Check API.";
+        document.getElementById(loaderId).innerText = "Board Offline.";
     }
-    chatBox.scrollTop = chatBox.scrollHeight;
 }
-
-/**
- * 3. AGENT & SECTION LOGIC
- */
-function openChat(agent) {
-    currentAgent = agent;
-    showSection('chatArea');
-    document.getElementById('sectionTitle').innerText = agent;
-    const chatBox = document.getElementById('chatBox');
-    
-    let greeting = `Standing by for ${agent} protocols.`;
-    if(agent === 'AccountantAI') greeting = "Ready for fiscal audit. Should we start with your **$Burn Rate$**?";
-    
-    chatBox.innerHTML = `<div class="bg-blue-600/10 border border-blue-500/20 p-4 rounded-2xl mb-4"><p class="text-sm font-bold text-blue-400 mb-1">${agent}:</p><p class="text-slate-200">${greeting}</p></div>`;
-}
-
-function showSection(id) {
-    ['overview', 'roadmap', 'chatArea'].forEach(s => document.getElementById(s).classList.add('hidden'));
-    document.getElementById(id).classList.remove('hidden');
-    
-    document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active-link'));
-    const activeLink = document.getElementById('link-' + id);
-    if(activeLink) activeLink.classList.add('active-link');
-    
-    document.getElementById('sectionTitle').innerText = id === 'chatArea' ? currentAgent : id.charAt(0).toUpperCase() + id.slice(1);
-}
-
-/**
- * 4. PERSISTENCE & DATA
- */
-function saveBoardContext(agent, dialogue) {
-    let history = JSON.parse(localStorage.getItem('gems_history') || '[]');
-    history.push({ agent, text: dialogue, timestamp: new Date().toISOString() });
-    localStorage.setItem('gems_history', JSON.stringify(history));
-    updateUIFromHistory();
-}
-
-function updateUIFromHistory() {
-    const history = JSON.parse(localStorage.getItem('gems_history') || '[]');
-    const uniqueAgents = new Set(history.map(h => h.agent)).size;
-    const total = 6;
-    const pct = Math.round((uniqueAgents / total) * 100);
-
-    const bar = document.getElementById('progressBar');
-    const pctText = document.getElementById('progressPctText');
-    const taskText = document.getElementById('taskCountText');
-
-    if(bar) bar.style.width = pct + '%';
-    if(pctText) pctText.innerText = pct + '%';
-    if(taskText) taskText.innerText = `${uniqueAgents} / ${total}`;
-}
-
-async function triggerInitialCritique(idea) {
-    // Only trigger if history is empty to avoid annoying the user on refresh
-    if (JSON.parse(localStorage.getItem('gems_history') || '[]').length > 0) return;
-
-    openChat('CoachAI');
-    // ... same fetch logic as sendMessage but specifically for the initial review ...
-}
-
-function adminReset() {
-    if (confirm("Reset everything?")) { localStorage.clear(); window.location.href = 'index.html'; }
-}
-
-// Global listeners
-document.getElementById('chatInput').addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
