@@ -4,7 +4,7 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   if (!process.env.GEMINI_API_KEY) {
-    return res.status(500).json({ error: "Missing GEMINI_API_KEY in Vercel settings." });
+    return res.status(500).json({ error: "Missing GEMINI_API_KEY" });
   }
 
   const { message, agent, idea } = req.body;
@@ -12,32 +12,25 @@ export default async function handler(req, res) {
   try {
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
     
-    // Using gemini-pro for maximum reliability on Vercel
-    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+    /** * FIX: We use 'gemini-1.5-pro' which is the current 
+     * standard ID that avoids the 404 version error.
+     */
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
 
-    // We "wrap" the instructions and the message together so the AI knows its role
     const prompt = `
-      INSTRUCTIONS:
-      You are ${agent} on the GEMS Board for the project "${idea}".
-      - MentorAI: High-level strategy.
-      - CoachAI: Fast-paced, brutal 1-10 scores. 
-      - AccountantAI: Use LaTeX for math.
-      - MarketingAI: Virality and hooks.
+      You are ${agent} on the GEMS Board for "${idea}".
+      Instructions: Be concise. If validating, give a score out of 100.
       
-      If the user asks for a roadmap, append TASK_LIST:[{"title": "Task Name", "days": "Day X", "completed": false}]
-
-      USER MESSAGE: ${message}
-      
-      RESPONSE:
+      User message: ${message}
     `;
 
     const result = await model.generateContent(prompt);
-    const response = await result.response;
-    const text = response.text();
+    const text = result.response.text();
 
     res.status(200).json({ text });
   } catch (error) {
     console.error("Vercel Function Error:", error);
-    res.status(500).json({ error: "GEMS Board Connection Lost: " + error.message });
+    // This sends the actual error back to your browser console
+    res.status(500).json({ error: error.message });
   }
 }
