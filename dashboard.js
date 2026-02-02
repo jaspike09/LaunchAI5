@@ -7,7 +7,6 @@ let currentAgent = "CoachAI";
 
 /**
  * INIT: Runs when the page loads.
- * Authenticates user and pulls ALL data from the cloud.
  */
 async function init() {
     const { data: { user } } = await _supabase.auth.getUser();
@@ -17,10 +16,8 @@ async function init() {
         return;
     }
 
-    // UI: Set User Name
     document.getElementById('userNameDisplay').innerText = user.email.split('@')[0];
 
-    // UI: Check for God Mode (Architect Tier)
     if (localStorage.getItem('launchAI_GodMode') === 'true') {
         const badge = document.getElementById('tierBadge');
         document.getElementById('adminReset').classList.remove('hidden');
@@ -29,7 +26,6 @@ async function init() {
         document.getElementById('tierName').innerText = "Architect Tier";
     }
 
-    // CLOUD LOAD: Get profile and roadmap
     const { data, error } = await _supabase
         .from('profiles')
         .select('*')
@@ -45,7 +41,6 @@ async function init() {
             renderRoadmap(data.roadmap);
         }
     } else {
-        // Fallback to local if brand new user
         const localIdea = localStorage.getItem('userBusinessIdea') || "Your Venture";
         document.getElementById('ideaDisplay').innerText = localIdea;
         if (localIdea !== "Your Venture") saveToCloud(localIdea, "idea");
@@ -89,12 +84,10 @@ async function sendMessage() {
         
         saveBoardContext(currentAgent, data.text);
 
-        // Sync Mission Statements
         if (currentAgent === 'SecretaryAI' || currentAgent === 'CoachAI') {
             saveToCloud(data.text, "mission");
         }
 
-        // Special Detection for Roadmap JSON
         if (data.text.includes("TASK_LIST:")) {
             const jsonString = data.text.split("TASK_LIST:")[1];
             const tasks = JSON.parse(jsonString);
@@ -129,6 +122,7 @@ async function syncRoadmapToCloud(tasksArray) {
         updated_at: new Date() 
     });
     renderRoadmap(tasksArray);
+    updateUIFromHistory(); // Ensure progress bar updates when roadmap is born
 }
 
 function renderRoadmap(tasks) {
@@ -141,7 +135,7 @@ function renderRoadmap(tasks) {
         list.innerHTML += `
             <div class="glass-panel p-4 rounded-xl flex items-center justify-between border-l-4 ${isDone ? 'border-green-500 opacity-60' : 'border-blue-500'}">
                 <div class="flex items-center space-x-4">
-                    <input type="checkbox" ${isDone ? 'checked' : ''} onclick="toggleTask(${index})" class="w-5 h-5 rounded border-white/10 bg-white/5 text-blue-500">
+                    <input type="checkbox" ${isDone ? 'checked' : ''} onclick="toggleTask(${index})" class="w-5 h-5 rounded border-white/10 bg-white/5 text-blue-500 cursor-pointer">
                     <div>
                         <p class="font-bold ${isDone ? 'line-through text-slate-500' : 'text-white'}">${task.title}</p>
                         <p class="text-xs text-slate-400">${task.days}</p>
@@ -158,7 +152,7 @@ async function toggleTask(index) {
     roadmap[index].completed = !roadmap[index].completed;
     
     await syncRoadmapToCloud(roadmap);
-    updateUIFromHistory(); // <--- Add this line here!
+    // UI already updated by syncRoadmapToCloud calling updateUIFromHistory
 }
 
 // 4. UI UTILITIES
@@ -170,12 +164,10 @@ function saveBoardContext(agent, dialogue) {
 }
 
 async function updateUIFromHistory() {
-    // 1. Calculate Agent Progress (50% weight)
     const history = JSON.parse(localStorage.getItem('gems_history') || '[]');
     const uniqueAgents = new Set(history.map(h => h.agent)).size;
     const agentScore = (uniqueAgents / 6) * 50; 
 
-    // 2. Calculate Task Progress (50% weight)
     let taskScore = 0;
     const { data: { user } } = await _supabase.auth.getUser();
     if (user) {
@@ -183,21 +175,18 @@ async function updateUIFromHistory() {
         if (data && data.roadmap && data.roadmap.length > 0) {
             const completedTasks = data.roadmap.filter(t => t.completed).length;
             taskScore = (completedTasks / data.roadmap.length) * 50;
-            
-            // Update the task count display (e.g., 3 / 10 tasks)
             document.getElementById('taskCountText').innerText = `${completedTasks} / ${data.roadmap.length}`;
         }
     }
 
-    // 3. Combine and Update UI
     const totalProgress = Math.round(agentScore + taskScore);
     const bar = document.getElementById('progressBar');
     
     if (bar) {
         bar.style.width = totalProgress + '%';
-        // Change color based on progress
         if (totalProgress > 70) bar.className = "bg-green-500 h-2 rounded-full transition-all duration-500";
         else if (totalProgress > 30) bar.className = "bg-blue-500 h-2 rounded-full transition-all duration-500";
+        else bar.className = "bg-slate-600 h-2 rounded-full transition-all duration-500";
     }
     
     document.getElementById('progressPctText').innerText = totalProgress + '%';
@@ -207,7 +196,7 @@ function openChat(agent) {
     currentAgent = agent;
     showSection('chatArea');
     const chatBox = document.getElementById('chatBox');
-    chatBox.innerHTML = `<div class="bg-blue-600/10 border border-blue-500/20 p-4 rounded-2xl mb-4"><p class="text-sm font-bold text-blue-400 mb-1">${agent}:</p><p class="text-slate-200">Standing by. How shall we proceed?</p></div>`;
+    chatBox.innerHTML = `<div class="bg-blue-600/10 border border-blue-500/20 p-4 rounded-2xl mb-4"><p class="text-sm font-bold text-blue-400 mb-1">${agent}:</p><p class="text-slate-200">Standing by. How shall we proceed with **${document.getElementById('ideaDisplay').innerText}**?</p></div>`;
 }
 
 function showSection(id) {
@@ -216,6 +205,11 @@ function showSection(id) {
     document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active-link'));
     const link = document.getElementById('link-' + id);
     if(link) link.classList.add('active-link');
+
+    // Update the header title
+    const title = document.getElementById('sectionTitle');
+    if (id === 'chatArea') title.innerText = currentAgent;
+    else title.innerText = id.charAt(0).toUpperCase() + id.slice(1);
 }
 
 async function logout() {
