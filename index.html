@@ -3,201 +3,62 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LaunchAI | Validate Your Vision</title>
+    <title>Launch AI - GEMS Board</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <style>
-        .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); }
-        .analyzing-active { filter: hue-rotate(90deg); transition: 2s; }
-        @keyframes pulse-soft { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
-        .pulse { animation: pulse-soft 2s infinite; }
-    </style>
 </head>
-<body class="bg-slate-950 text-white min-h-screen font-sans selection:bg-blue-500/30">
+<body class="bg-slate-900 text-white font-sans">
 
-    <header class="p-6">
-        <div class="max-w-7xl mx-auto flex justify-between items-center">
-            <h1 id="mainLogo" onclick="handleLogoClick()" class="text-2xl font-bold tracking-tighter cursor-pointer select-none">
-                Launch<span class="text-blue-500">AI</span>
-            </h1>
-            <div class="text-xs text-slate-500 font-mono uppercase tracking-widest">System v4.0.2 Active</div>
+    <nav class="p-6 flex justify-between items-center">
+        <div id="logo" onclick="handleLogoClick()" class="cursor-pointer select-none">
+            <h1 class="text-2xl font-bold tracking-tighter text-blue-500">LAUNCH<span class="text-white">AI</span></h1>
         </div>
-    </header>
+    </nav>
 
-    <main class="max-w-4xl mx-auto px-6 pt-20 pb-32">
-        <div id="inputContainer" class="text-center transition-all duration-700">
-            <h2 class="text-4xl md:text-6xl font-bold tracking-tighter mb-6">
-                What are we <span class="text-blue-500">building</span> today?
-            </h2>
-            <p class="text-slate-400 mb-10 text-lg">Enter your business vision. Our AI Board will analyze the market gap.</p>
+    <main class="max-w-4xl mx-auto mt-20 text-center px-4">
+        <h2 class="text-5xl font-extrabold mb-6">Validate your vision in seconds.</h2>
+        <p class="text-slate-400 text-xl mb-10">Get the GEMS Board of AI experts to audit your next big idea.</p>
+
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+            <button onclick="checkAccess('dashboard.html')" class="bg-blue-600 hover:bg-blue-700 px-8 py-4 rounded-full font-bold text-lg transition">
+                Start Launching
+            </button>
             
-            <div class="glass p-2 rounded-2xl flex flex-col md:flex-row gap-2 shadow-2xl">
-                <input type="text" id="ideaInput" 
-                    placeholder="e.g. A subscription box for urban gardeners..." 
-                    class="flex-1 bg-transparent border-none px-6 py-4 text-xl outline-none focus:ring-0">
-                <button id="validateBtn" class="bg-blue-600 hover:bg-blue-500 px-10 py-4 rounded-xl font-bold transition shadow-lg shadow-blue-500/20">
-                    Validate Vision
-                </button>
-            </div>
-        </div>
-
-        <div id="resultsArea" class="hidden mt-20 space-y-12 animate-in fade-in slide-in-from-bottom-10 duration-1000">
-            <div class="flex flex-col items-center">
-                <div class="relative w-48 h-48 mb-6">
-                    <svg class="w-full h-full transform -rotate-90">
-                        <circle cx="96" cy="96" r="88" stroke="currentColor" stroke-width="8" fill="transparent" class="text-slate-800"></circle>
-                        <circle id="scoreCircle" cx="96" cy="96" r="88" stroke="currentColor" stroke-width="8" fill="transparent" 
-                            stroke-dasharray="552.9" stroke-dashoffset="552.9" 
-                            class="text-blue-500 transition-all duration-[3000ms] ease-out"></circle>
-                    </svg>
-                    <div class="absolute inset-0 flex items-center justify-center">
-                        <span id="scoreText" class="text-5xl font-bold">0</span><span class="text-xl text-blue-500">%</span>
-                    </div>
-                </div>
-                <h3 id="verdictTitle" class="text-2xl font-bold mb-2">Analyzing Market Data...</h3>
-                <p id="verdictDesc" class="text-slate-400 text-center max-w-md">Our agents are scanning competitors and revenue multiples.</p>
-            </div>
-
-            <div class="grid md:grid-cols-2 gap-6 mt-12">
-                <div class="glass p-8 rounded-3xl border-blue-500/20 flex flex-col">
-                    <h4 class="text-xl font-bold mb-2">Founder Tier</h4>
-                    <p class="text-slate-400 text-sm mb-6 flex-1">Perfect for solo launches. Full access to the GEMS Board and 30-Day Roadmap.</p>
-                    <div class="text-3xl font-bold mb-6">$39 <span class="text-sm text-slate-500 font-normal">one-time</span></div>
-                    <button id="founderBtn" class="w-full py-4 bg-white text-black rounded-xl font-bold hover:bg-slate-200 transition">Start Launching</button>
-                </div>
-                <div class="glass p-8 rounded-3xl border-blue-500/20 bg-blue-500/5 flex flex-col">
-                    <h4 class="text-xl font-bold mb-2">Architect Tier</h4>
-                    <p class="text-slate-400 text-sm mb-6 flex-1">God Mode enabled. Infinite AI generations and priority board sessions.</p>
-                    <div class="text-3xl font-bold mb-6">$99 <span class="text-sm text-slate-500 font-normal">one-time</span></div>
-                    <button id="growthBtn" class="w-full py-4 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-500 transition shadow-lg shadow-blue-500/30">Go God Mode</button>
-                </div>
-            </div>
+            <button onclick="checkAccess('success.html')" class="bg-slate-800 hover:bg-slate-700 px-8 py-4 rounded-full font-bold text-lg transition">
+                Go God Mode
+            </button>
         </div>
     </main>
 
-    <script>/**
-/**
- * 1. ELEMENTS SETUP
- */
-const elements = {
-    ideaInput: document.getElementById('ideaInput'),
-    validateBtn: document.getElementById('validateBtn'),
-    resultsArea: document.getElementById('resultsArea'),
-    inputContainer: document.getElementById('inputContainer'),
-    scoreText: document.getElementById('scoreText'),
-    scoreCircle: document.getElementById('scoreCircle'),
-    founderBtn: document.getElementById('founderBtn'),
-    growthBtn: document.getElementById('growthBtn'),
-    mainLogo: document.getElementById('mainLogo'),
-    verdictTitle: document.getElementById('verdictTitle'),
-    verdictDesc: document.getElementById('verdictDesc')
-};
-
-/**
- * 2. AI VALIDATION LOGIC
- */
-elements.validateBtn.addEventListener('click', async () => {
-    const idea = elements.ideaInput.value.trim();
-    if (!idea) return alert("Please enter a vision first.");
-
-    // UI Loading State
-    elements.validateBtn.innerText = "Analyzing...";
-    elements.validateBtn.classList.add('pulse');
-    elements.validateBtn.disabled = true;
-
-    try {
-        const response = await fetch('/api/architect', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-                message: "Analyze this business idea. Provide a score out of 100 and a 2-sentence market verdict.", 
-                agent: "CoachAI", 
-                idea: idea 
-            })
-        });
-
-        const data = await response.json();
-        
-        if (data.text) {
-            // Save idea for later
-            localStorage.setItem('userBusinessIdea', idea);
+    <script>
+        // --- 1. LOGO CLICKER LOGIC ---
+        let clickCount = 0;
+        function handleLogoClick() {
+            clickCount++;
+            console.log("Clicks:", clickCount);
             
-            // Extract score (looks for any number in the AI response)
-            const scoreMatch = data.text.match(/\d+/);
-            const score = scoreMatch ? parseInt(scoreMatch[0]) : 85;
+            if (clickCount >= 5) {
+                localStorage.setItem('launchAI_GodMode', 'true');
+                alert("🚀 GOD MODE ACTIVATED: Stripe Bypassed.");
+                // Optional: Change logo color to show it worked
+                document.querySelector('#logo h1').style.color = '#22c55e'; // Green
+                clickCount = 0; // reset
+            }
+        }
 
-            // Show Results
-            elements.inputContainer.classList.add('hidden');
-            elements.resultsArea.classList.remove('hidden');
-
-            // Animate Score Circle
-            // Formula: 552.9 is the circumference. offset = circumference - (percent * circumference / 100)
-            const offset = 552.9 - (score * 552.9 / 100);
+        // --- 2. THE GATEKEEPER BYPASS ---
+        function checkAccess(destination) {
+            const isGodMode = localStorage.getItem('launchAI_GodMode') === 'true';
             
-            setTimeout(() => {
-                elements.scoreCircle.style.strokeDashoffset = offset;
-                animateValue(elements.scoreText, 0, score, 2000);
-                elements.verdictTitle.innerText = score > 70 ? "High Market Potential" : "Pivot Recommended";
-                elements.verdictDesc.innerText = data.text.split(/[0-9]/)[0].substring(0, 150) + "...";
-            }, 500);
+            if (isGodMode) {
+                // BYPASS ACTIVE: Go straight to your page
+                console.log("Bypassing Stripe for:", destination);
+                window.location.href = destination;
+            } else {
+                // BYPASS INACTIVE: Go to Stripe
+                console.log("Redirecting to Stripe...");
+                window.location.href = 'https://buy.stripe.com/YOUR_STRIPE_LINK_HERE';
+            }
         }
-    } catch (err) {
-        console.error(err);
-        alert("Board Connection Error. Check Vercel Logs.");
-    } finally {
-        elements.validateBtn.innerText = "Validate Vision";
-        elements.validateBtn.classList.remove('pulse');
-        elements.validateBtn.disabled = false;
-    }
-});
-
-// Helper function to count up the numbers
-function animateValue(obj, start, end, duration) {
-    let startTimestamp = null;
-    const step = (timestamp) => {
-        if (!startTimestamp) startTimestamp = timestamp;
-        const progress = Math.min((timestamp - startTimestamp) / duration, 1);
-        obj.innerHTML = Math.floor(progress * (end - start) + start);
-        if (progress < 1) {
-            window.requestAnimationFrame(step);
-        }
-    };
-    window.requestAnimationFrame(step);
-}
-
-/**
- * 3. THE ARCHITECT'S SECRET (Logo Trick)
- */
-let logoClicks = 0;
-function handleLogoClick() {
-    logoClicks++;
-    if (logoClicks === 5) {
-        localStorage.setItem('launchAI_GodMode', 'true');
-        alert("SECURITY BYPASS: Architect Tier Authorized.");
-        elements.growthBtn.innerText = "Bypass to Auth (Free)";
-        elements.growthBtn.classList.replace('bg-blue-600', 'bg-purple-600');
-    }
-}
-// Attach to logo
-elements.mainLogo.onclick = handleLogoClick;
-
-/**
- * 4. STRIPE / ACCESS LOGIC
- */
-function handleAccess(tier) {
-    if (localStorage.getItem('launchAI_GodMode') === 'true') {
-        window.location.href = 'auth.html';
-        return;
-    }
-    const links = {
-        'Founder': "https://buy.stripe.com/dRmbJ01vhgRL8Am8WD7Re03",
-        'Growth': "https://buy.stripe.com/cNi4gy6PB8lf3g22yf7Re02"
-    };
-    window.location.href = links[tier];
-}
-
-elements.founderBtn.onclick = () => handleAccess('Founder');
-elements.growthBtn.onclick = () => handleAccess('Growth');
     </script>
 </body>
 </html>
