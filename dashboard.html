@@ -147,10 +147,8 @@
     const userMessage = prompt(`Message for the ${agentName}:`);
     if (!userMessage) return;
 
-    const idea = localStorage.getItem('userBusinessIdea') || "Stealth Startup";
-
-    // Show a loading state
-    console.log(`Consulting the ${agentName}...`);
+    // 1. Get the stored idea (provide a fallback so it's never 'undefined')
+    const idea = localStorage.getItem('userBusinessIdea') || "A new startup";
 
     try {
         const response = await fetch('/api/architect', {
@@ -165,11 +163,16 @@
 
         const data = await response.json();
         
-        // Display the AI response (You can alert it or put it in a <div>)
-        alert(`${agentName} says: \n\n${data.text}`);
+        // 2. ERROR FIX: Check if data.text exists before using it
+        if (data && data.text) {
+            alert(`${agentName} says: \n\n${data.text}`);
+        } else {
+            console.error("Response structure mismatch:", data);
+            alert("The Board sent a blank memo. Check the console.");
+        }
         
     } catch (err) {
-        alert("The Board is currently in a closed meeting. (Error: API Connection)");
+        alert("Connection lost. Make sure your Vercel Environment Variables are set!");
     }
 }
 
