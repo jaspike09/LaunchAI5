@@ -63,7 +63,10 @@
     <main class="flex-1 flex flex-col overflow-hidden bg-slate-900">
         <header class="h-16 border-b border-white/5 flex items-center justify-between px-8 bg-slate-950/50 backdrop-blur-sm">
             <h2 id="sectionTitle" class="text-lg font-semibold text-slate-200">Mission Control</h2>
-            <span id="currentPhaseBadge" class="text-[10px] bg-blue-500/10 text-blue-400 px-3 py-1 rounded-full border border-blue-500/20 font-bold uppercase tracking-wider">Phase 1: Validation</span>
+            <div class="flex items-center gap-4">
+                <button onclick="clearCurrentHistory()" class="text-[10px] text-slate-500 hover:text-red-400 uppercase font-bold tracking-widest transition">Clear Briefing</button>
+                <span id="currentPhaseBadge" class="text-[10px] bg-blue-500/10 text-blue-400 px-3 py-1 rounded-full border border-blue-500/20 font-bold uppercase tracking-wider">Phase 1: Validation</span>
+            </div>
         </header>
 
         <div class="flex-1 overflow-y-auto relative">
@@ -96,19 +99,16 @@
             </div>
 
             <div id="chatArea" class="hidden h-full flex flex-col">
-                <div id="chatBox" class="flex-1 p-8 overflow-y-auto space-y-6 scroll-smooth">
-                    </div>
-                
+                <div id="chatBox" class="flex-1 p-8 overflow-y-auto space-y-6 scroll-smooth"></div>
                 <div class="p-6 bg-slate-950/50 border-t border-white/5">
                     <div class="max-w-4xl mx-auto flex gap-4">
-                        <input type="text" id="chatInput" placeholder="Message the board..." class="flex-1 bg-white/5 border border-white/10 rounded-2xl px-6 py-4 outline-none focus:border-blue-500 transition shadow-inner">
+                        <input type="text" id="chatInput" placeholder="Message the board..." class="flex-1 bg-white/5 border border-white/10 rounded-2xl px-6 py-4 outline-none focus:border-blue-500 transition shadow-inner text-white">
                         <button onclick="sendMessage()" id="sendBtn" class="bg-blue-600 px-8 rounded-2xl font-bold hover:bg-blue-500 transition shadow-lg shadow-blue-600/20">
                             <i class="fa-solid fa-paper-plane"></i>
                         </button>
                     </div>
                 </div>
             </div>
-
         </div>
     </main>
 
@@ -147,7 +147,6 @@
             const start = signupDate ? new Date(signupDate) : new Date();
             const diff = Math.ceil((new Date() - start) / (1000 * 60 * 60 * 24)) || 1;
             const week = Math.min(Math.ceil(diff / 7), 4);
-
             document.getElementById('progressPctText').innerText = `Day ${diff}`;
             document.getElementById('currentWeekText').innerText = `Week ${week}`;
             document.getElementById('currentPhaseBadge').innerText = `Phase ${week}: ${TASK_PROTOCOL[week-1].title}`;
@@ -170,97 +169,106 @@
         function showSection(id) {
             ['overview', 'roadmap', 'chatArea'].forEach(s => {
                 document.getElementById(s).classList.add('hidden');
-                const link = document.getElementById('link-' + s);
-                if(link) link.classList.remove('active-link');
             });
             document.getElementById(id).classList.remove('hidden');
             document.getElementById('sectionTitle').innerText = (id === 'chatArea') ? currentAgent : id.charAt(0).toUpperCase() + id.slice(1);
-            if(document.getElementById('link-' + id)) document.getElementById('link-' + id).classList.add('active-link');
         }
 
+        // --- CHAT PERSISTENCE LOGIC ---
+
         async function openChat(agent) {
-    currentAgent = agent;
-    showSection('chatArea');
-    const box = document.getElementById('chatBox');
-    box.innerHTML = `<div class="text-center py-4 text-xs text-slate-500 italic">Retriving secure archives...</div>`;
+            currentAgent = agent;
+            showSection('chatArea');
+            const box = document.getElementById('chatBox');
+            box.innerHTML = `<div class="text-center py-10 text-xs text-slate-500 italic animate-pulse">Establishing encrypted link to ${agent}...</div>`;
 
-    // Fetch history from Supabase
-    const { data: history, error } = await _supabase
-        .from('chat_history')
-        .select('*')
-        .eq('user_id', userProfile.id)
-        .eq('agent_name', agent)
-        .order('created_at', { ascending: true });
+            const { data: history } = await _supabase
+                .from('chat_history')
+                .select('*')
+                .eq('user_id', userProfile.id)
+                .eq('agent_name', agent)
+                .order('created_at', { ascending: true });
 
-    box.innerHTML = ''; // Clear loading text
-
-    if (history && history.length > 0) {
-        history.forEach(item => renderMessage(item.sender, item.message, item.agent_name));
-    } else {
-        box.innerHTML = `<div class="text-center py-10 opacity-30 italic text-sm">No previous briefing found. Start the conversation.</div>`;
-    }
-    box.scrollTop = box.scrollHeight;
-}
+            box.innerHTML = ''; 
+            if (history && history.length > 0) {
+                history.forEach(item => appendMessageToUI(item.sender === 'user' ? 'user' : 'ai', item.message, item.agent_name));
+            } else {
+                box.innerHTML = `<div class="text-center py-20 opacity-20 italic text-sm">Archives empty. Awaiting your first command.</div>`;
+            }
+            box.scrollTop = box.scrollHeight;
+        }
 
         async function sendMessage() {
             const input = document.getElementById('chatInput');
-            const sendBtn = document.getElementById('sendBtn');
             const msg = input.value.trim();
             if (!msg) return;
 
             const box = document.getElementById('chatBox');
-            if(box.querySelector('.fa-comments')) box.innerHTML = '';
+            if (box.innerText.includes("Archives empty")) box.innerHTML = '';
 
-            // User Message
-            box.innerHTML += `
-                <div class="flex justify-end">
-                    <div class="bg-blue-600/20 border border-blue-500/30 p-4 rounded-2xl rounded-tr-none max-w-[80%]">
-                        <p class="text-sm">${msg}</p>
-                    </div>
-                </div>`;
-            
+            // 1. UI: Add User Message
+            appendMessageToUI('user', msg);
             input.value = '';
             
-            // Loading State
+            // 2. DB: Save User Message
+            await _supabase.from('chat_history').insert([
+                { user_id: userProfile.id, agent_name: currentAgent, message: msg, sender: 'user' }
+            ]);
+
+            // 3. UI: Loading
             const loadId = 'load-' + Date.now();
-            box.innerHTML += `
-                <div class="flex justify-start" id="${loadId}">
-                    <div class="glass-panel p-4 rounded-2xl rounded-tl-none text-blue-400 text-sm italic font-bold">
-                        ${currentAgent} is typing<span class="loading-dots"></span>
-                    </div>
-                </div>`;
+            box.innerHTML += `<div class="flex justify-start" id="${loadId}"><div class="glass-panel p-4 rounded-2xl text-blue-400 text-sm italic font-bold">Board processing<span class="loading-dots"></span></div></div>`;
             box.scrollTop = box.scrollHeight;
 
             try {
                 const res = await fetch('/api/architect', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        message: msg,
-                        agent: currentAgent,
-                        idea: document.getElementById('ideaDisplay').innerText
-                    })
+                    body: JSON.stringify({ message: msg, agent: currentAgent, idea: document.getElementById('ideaDisplay').innerText })
                 });
-
                 const data = await res.json();
                 document.getElementById(loadId).remove();
 
-                // FINAL FIX: Handle "undefined" data.text
-                const finalReply = data.text || "The board is currently in a meeting. Please try again in 60 seconds.";
+                const finalReply = data.text || "Connection timeout. Please try again.";
 
-                box.innerHTML += `
-                    <div class="flex justify-start bounce-in">
-                        <div class="glass-panel p-4 rounded-2xl rounded-tl-none border border-white/10 max-w-[80%] shadow-xl">
-                            <p class="text-xs font-bold text-blue-400 mb-2 uppercase tracking-tighter">${currentAgent}</p>
-                            <p class="text-sm text-slate-200 leading-relaxed">${finalReply}</p>
-                        </div>
-                    </div>`;
-                
-                box.scrollTop = box.scrollHeight;
+                // 4. UI: Add AI Message
+                appendMessageToUI('ai', finalReply, currentAgent);
+
+                // 5. DB: Save AI Message
+                await _supabase.from('chat_history').insert([
+                    { user_id: userProfile.id, agent_name: currentAgent, message: finalReply, sender: 'ai' }
+                ]);
 
             } catch (err) {
-                document.getElementById(loadId).innerHTML = `<div class="text-red-400 text-xs px-4 italic font-bold">Signal lost. Check Vercel logs.</div>`;
+                document.getElementById(loadId).innerHTML = `<div class="text-red-500 text-xs italic">Uplink failed. Check logs.</div>`;
             }
+        }
+
+        function appendMessageToUI(type, text, agentName = "") {
+            const box = document.getElementById('chatBox');
+            if (type === 'user') {
+                box.innerHTML += `
+                    <div class="flex justify-end">
+                        <div class="bg-blue-600/20 border border-blue-500/30 p-4 rounded-2xl rounded-tr-none max-w-[80%]">
+                            <p class="text-sm">${text}</p>
+                        </div>
+                    </div>`;
+            } else {
+                box.innerHTML += `
+                    <div class="flex justify-start">
+                        <div class="glass-panel p-4 rounded-2xl rounded-tl-none border border-white/10 max-w-[80%] shadow-xl">
+                            <p class="text-xs font-bold text-blue-400 mb-2 uppercase tracking-tighter">${agentName}</p>
+                            <p class="text-sm text-slate-200 leading-relaxed">${text}</p>
+                        </div>
+                    </div>`;
+            }
+            box.scrollTop = box.scrollHeight;
+        }
+
+        async function clearCurrentHistory() {
+            if(!confirm("Wipe briefing history for " + currentAgent + "?")) return;
+            await _supabase.from('chat_history').delete().eq('user_id', userProfile.id).eq('agent_name', currentAgent);
+            openChat(currentAgent);
         }
 
         async function logout() {
