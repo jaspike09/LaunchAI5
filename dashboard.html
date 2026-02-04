@@ -11,10 +11,6 @@
         .sidebar-link:hover { background: rgba(59, 130, 246, 0.1); color: #60a5fa; }
         .active-link { background: rgba(59, 130, 246, 0.2); color: #60a5fa; border-right: 4px solid #3b82f6; }
         .glass-panel { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.05); }
-        .loading-dots::after { content: '...'; animation: blink 1.5s infinite; }
-        @keyframes blink { 0%, 100% { opacity: 0; } 50% { opacity: 1; } }
-        .bounce-in { animation: fadeInUp 0.3s ease-out; }
-        @keyframes fadeInUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body class="bg-slate-950 text-white font-sans flex h-screen overflow-hidden">
@@ -25,91 +21,113 @@
         </div>
         
         <nav class="flex-1 mt-6 space-y-1 overflow-y-auto">
-            <a href="#" id="link-overview" onclick="showSection('overview')" class="sidebar-link active-link flex items-center px-6 py-4 transition">
+            <a href="#" onclick="showSection('overview')" class="sidebar-link active-link flex items-center px-6 py-4 transition">
                 <i class="fa-solid fa-chart-line mr-3"></i> Mission Control
             </a>
-            <a href="#" id="link-roadmap" onclick="showSection('roadmap')" class="sidebar-link flex items-center px-6 py-4 transition">
-                <i class="fa-solid fa-map-location-dot mr-3"></i> Roadmap
+            <div class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest mt-4">The Board</div>
+            
+            <a href="#" onclick="openChat('MentorAI')" class="sidebar-link flex items-center px-6 py-4 transition">
+                <i class="fa-solid fa-user-tie text-blue-400 mr-3"></i> MentorAI
             </a>
-            <div class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest mt-4 border-t border-white/5">The GEMS Board</div>
-            <a href="#" onclick="openChat('MentorAI')" class="sidebar-link flex items-center px-6 py-4 transition"><i class="fa-solid fa-user-tie text-blue-400 mr-3"></i> MentorAI</a>
-            <a href="#" onclick="openChat('MarketingAI')" class="sidebar-link flex items-center px-6 py-4 transition"><i class="fa-solid fa-bullhorn text-orange-400 mr-3"></i> MarketingAI</a>
+            <a href="#" onclick="openChat('MarketingAI')" class="sidebar-link flex items-center px-6 py-4 transition">
+                <i class="fa-solid fa-bullhorn text-orange-400 mr-3"></i> MarketingAI
+            </a>
         </nav>
 
         <div class="p-6 border-t border-white/5">
-            <button onclick="logout()" class="w-full py-2 border border-slate-700 rounded-lg text-[10px] text-slate-400 hover:text-red-400 transition uppercase font-bold tracking-tighter">
+            <button onclick="logout()" class="w-full py-2 border border-slate-700 rounded-lg text-[10px] text-slate-400 uppercase font-bold tracking-tighter">
                 Terminate Session
             </button>
         </div>
     </aside>
 
-    <main class="flex-1 flex flex-col overflow-hidden bg-slate-900">
-        <header class="h-16 border-b border-white/5 flex items-center justify-between px-8 bg-slate-950/50 backdrop-blur-sm">
-            <h2 id="sectionTitle" class="text-lg font-semibold text-slate-200">Mission Control</h2>
-            <button id="clearBtn" onclick="clearCurrentHistory()" class="hidden text-[10px] text-slate-500 hover:text-red-400 uppercase font-bold tracking-widest transition">Clear Briefing</button>
+    <main class="flex-1 flex flex-col bg-slate-900">
+        <header class="h-16 border-b border-white/5 flex items-center justify-between px-8 bg-slate-950/50">
+            <h2 id="sectionTitle" class="text-lg font-semibold">Mission Control</h2>
         </header>
 
-        <div class="flex-1 overflow-y-auto relative">
-            <div id="overview" class="p-8 space-y-8">
-                <div class="glass-panel p-8 rounded-3xl relative overflow-hidden">
-                    <h4 class="text-2xl font-bold mb-2">Welcome, <span id="userNameDisplay" class="text-blue-400">Founder</span></h4>
-                    <p class="text-slate-400">Strategy engaged for: <span class="text-white italic font-medium" id="ideaDisplay">Connecting...</span></p>
+        <div class="flex-1 overflow-y-auto p-8">
+            <div id="overview" class="space-y-6">
+                <div class="glass-panel p-8 rounded-3xl">
+                    <h4 class="text-xl font-bold mb-4">Welcome, <span id="userNameDisplay">Founder</span></h4>
+                    <p class="text-slate-300">Venture Idea: <span class="text-blue-400" id="ideaDisplay">Loading...</span></p>
                 </div>
             </div>
 
-            <div id="chatArea" class="hidden h-full flex flex-col">
-                <div id="chatBox" class="flex-1 p-8 overflow-y-auto space-y-6"></div>
-                <div class="p-6 bg-slate-950/50 border-t border-white/5">
-                    <div class="max-w-4xl mx-auto flex gap-4">
-                        <input type="text" id="chatInput" placeholder="Message the board..." class="flex-1 bg-white/5 border border-white/10 rounded-2xl px-6 py-4 outline-none focus:border-blue-500 text-white">
-                        <button onclick="sendMessage()" class="bg-blue-600 px-8 rounded-2xl font-bold hover:bg-blue-500 transition shadow-lg shadow-blue-600/20">
-                            <i class="fa-solid fa-paper-plane"></i>
-                        </button>
-                    </div>
+            <div id="chatArea" class="hidden flex flex-col h-full">
+                <div id="chatBox" class="flex-1 glass-panel rounded-2xl p-6 mb-4 overflow-y-auto min-h-[400px] space-y-4"></div>
+                <div class="flex gap-2">
+                    <input type="text" id="chatInput" placeholder="Send instructions..." class="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-blue-500">
+                    <button onclick="sendMessage()" class="bg-blue-600 px-6 rounded-xl font-bold hover:bg-blue-500 transition">
+                        <i class="fa-solid fa-paper-plane"></i>
+                    </button>
                 </div>
             </div>
         </div>
     </main>
 
-    // ... existing HTML head and styles ...
-
     <script>
         const SUPABASE_URL = 'https://yvgzyymjymrgjhhthgtj.supabase.co';
-        const SUPABASE_KEY = 'YOUR_KEY_HERE'; // Keep your existing key here
+        const SUPABASE_KEY = 'YOUR_KEY_HERE'; 
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         let currentAgent = "MentorAI";
         let userProfile = null;
 
+        // --- 1. THE FIX FOR 401 & INNERTEXT ERRORS ---
         async function init() {
-            // Check session
-            const { data: { session } } = await _supabase.auth.getSession();
-            if (!session) {
-                window.location.href = 'auth.html';
-                return; 
+            try {
+                const { data: { session }, error: sessionError } = await _supabase.auth.getSession();
+                
+                if (sessionError || !session) {
+                    console.error("Auth session missing");
+                    window.location.href = 'auth.html';
+                    return; 
+                }
+
+                // Check for name display element safely
+                const nameDisplay = document.getElementById('userNameDisplay');
+                if (nameDisplay) nameDisplay.innerText = session.user.email.split('@')[0];
+
+                // Fetch profile with a fallback to prevent 401/406 breaking the UI
+                const { data: profile } = await _supabase
+                    .from('profiles')
+                    .select('*')
+                    .eq('id', session.user.id)
+                    .maybeSingle();
+
+                userProfile = profile || { 
+                    id: session.user.id, 
+                    business_idea: localStorage.getItem('userBusinessIdea') || "Stealth Venture" 
+                };
+
+                const ideaDisplay = document.getElementById('ideaDisplay');
+                if (ideaDisplay) ideaDisplay.innerText = userProfile.business_idea;
+
+            } catch (err) {
+                console.error("Initialization failed:", err);
             }
+        }
 
-            const user = session.user;
-            document.getElementById('userNameDisplay').innerText = user.email.split('@')[0];
+        // --- 2. THE FIX FOR "openChat IS NOT DEFINED" ---
+        function openChat(agent) {
+            currentAgent = agent;
+            showSection('chatArea');
+            const chatBox = document.getElementById('chatBox');
+            chatBox.innerHTML = `<div class="text-blue-400 text-xs italic">Encrypted link established with ${agent}...</div>`;
+        }
 
-            // Load Profile from DB
-            const { data: profile } = await _supabase.from('profiles').select('*').eq('id', user.id).maybeSingle();
+        function showSection(id) {
+            const sections = ['overview', 'chatArea'];
+            sections.forEach(s => {
+                const el = document.getElementById(s);
+                if (el) el.classList.add('hidden');
+            });
             
-            // Fallback for God Mode or first-time users
-            userProfile = profile || { 
-                id: user.id, 
-                business_idea: localStorage.getItem('userBusinessIdea') || "Stealth Startup" 
-            };
-
-            document.getElementById('ideaDisplay').innerText = userProfile.business_idea;
-
-            // UI Adjustments for Tier
-            if (localStorage.getItem('launchAI_GodMode') === 'true') {
-                const badge = document.getElementById('tierBadge');
-                badge.innerText = "A";
-                badge.className = "w-8 h-8 rounded-full bg-purple-600 flex items-center justify-center font-bold text-xs";
-                document.getElementById('tierName').innerText = "Architect Tier";
-            }
+            const activeSection = document.getElementById(id);
+            if (activeSection) activeSection.classList.remove('hidden');
+            
+            document.getElementById('sectionTitle').innerText = (id === 'chatArea') ? currentAgent : "Mission Control";
         }
 
         async function sendMessage() {
@@ -118,23 +136,8 @@
             if (!text || !userProfile) return;
 
             const chatBox = document.getElementById('chatBox');
-            
-            // 1. Render User Message
-            chatBox.innerHTML += `<div class="flex justify-end mb-4"><div class="bg-blue-600/20 p-4 rounded-2xl border border-blue-500/30 max-w-[80%]"><p class="text-sm">${text}</p></div></div>`;
+            chatBox.innerHTML += `<div class="flex justify-end"><div class="bg-blue-600/20 p-3 rounded-xl text-sm">${text}</div></div>`;
             input.value = "";
-            
-            // 2. Save User Message to Supabase
-            await _supabase.from('chat_history').insert([{ 
-                user_id: userProfile.id, 
-                agent_name: currentAgent, 
-                message: text, 
-                sender: 'user' 
-            }]);
-
-            // 3. Loading State
-            const loadId = 'load-' + Date.now();
-            chatBox.innerHTML += `<div id="${loadId}" class="text-blue-400 text-xs italic animate-pulse mb-4">${currentAgent} is thinking...</div>`;
-            chatBox.scrollTop = chatBox.scrollHeight;
 
             try {
                 const response = await fetch('/api/architect', {
@@ -143,27 +146,19 @@
                     body: JSON.stringify({ message: text, agent: currentAgent, idea: userProfile.business_idea })
                 });
                 const data = await response.json();
-                
-                document.getElementById(loadId).remove();
-
-                // 4. Render AI Response
-                const aiText = data.text || "Connection lost.";
-                chatBox.innerHTML += `<div class="flex justify-start mb-4"><div class="glass-panel p-4 rounded-2xl border border-white/10 max-w-[80%]"><p class="text-xs font-bold text-blue-400 mb-1">${currentAgent}</p><p class="text-sm">${aiText}</p></div></div>`;
-                
-                // 5. Save AI Response to Supabase
-                await _supabase.from('chat_history').insert([{ 
-                    user_id: userProfile.id, 
-                    agent_name: currentAgent, 
-                    message: aiText, 
-                    sender: 'ai' 
-                }]);
+                chatBox.innerHTML += `<div class="flex justify-start"><div class="glass-panel p-3 rounded-xl text-sm"><b class="text-blue-400">${currentAgent}:</b><br>${data.text}</div></div>`;
             } catch (e) {
-                document.getElementById(loadId).innerText = "Error connecting to the Board.";
+                chatBox.innerHTML += `<p class="text-red-500 text-xs">Uplink Error.</p>`;
             }
             chatBox.scrollTop = chatBox.scrollHeight;
         }
 
-        // ... existing helper functions (showSection, logout, etc) ...
+        async function logout() {
+            await _supabase.auth.signOut();
+            window.location.href = 'index.html';
+        }
+
+        // Run initialization
         init();
     </script>
 </body>
