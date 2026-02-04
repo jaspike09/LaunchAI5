@@ -9,25 +9,25 @@ export default async function handler(req) {
   try {
     const body = await req.json();
     
-    // Support both 'messages' (array) or 'message' (string) from frontend
-    const messages = body.messages || (body.message ? [{ role: 'user', content: body.message }] : null);
+    // Safety: Capture the message regardless of whether the frontend sends 'message' or 'messages'
+    const userText = body.message || (body.messages && body.messages[body.messages.length - 1].content);
 
-    if (!messages) {
-      return new Response(JSON.stringify({ error: "No prompt provided" }), { status: 400 });
+    if (!userText) {
+      return new Response(JSON.stringify({ error: "No message found in request body" }), { status: 400 });
     }
 
     const result = await streamText({
-      // FIXED: gemini-1.5-flash is retired. Using gemini-2.0-flash.
-      model: google('gemini-2.0-flash'), 
-      messages: messages,
+      // Using the '-latest' suffix forces the API to find the active deployment on the v1beta endpoint
+      model: google('gemini-1.5-flash-latest'), 
+      messages: [
+        { role: 'system', content: `You are ${body.agent || 'an AI assistant'}. Idea: ${body.idea || 'Business'}` },
+        { role: 'user', content: userText }
+      ],
     });
 
     return result.toTextStreamResponse();
   } catch (error) {
-    console.error('Gemini API Error:', error);
-    return new Response(JSON.stringify({ error: error.message }), { 
-      status: 500,
-      headers: { 'Content-Type': 'application/json' }
-    });
+    console.error('API Error:', error);
+    return new Response(JSON.stringify({ error: error.message }), { status: 500 });
   }
 }
