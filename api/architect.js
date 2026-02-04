@@ -1,32 +1,27 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
 export default async function handler(req, res) {
-    if (req.method !== 'POST') {
-        return res.status(405).json({ error: 'Method Not Allowed' });
-    }
-
-    const { message, agent, idea } = req.body;
-
-    // 1. Validate API Key exists
-    if (!process.env.GEMINI_API_KEY) {
-        return res.status(500).json({ text: "Backend Error: Missing GEMINI_API_KEY environment variable." });
-    }
+    if (req.method !== 'POST') return res.status(405).json({ error: 'Method Not Allowed' });
 
     try {
-        const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+        const { message, agent, idea } = req.body;
         
-        // 2. Explicitly use v1 and the flash model
-        const model = genAI.getGenerativeModel(
-            { model: "gemini-1.5-flash" }, 
-            { apiVersion: 'v1' }
-        );
+        if (!process.env.GEMINI_API_KEY) {
+            return res.status(500).json({ text: "API Key missing in Vercel environment." });
+        }
 
-        const prompt = `
-            You are ${agent}, an elite startup consultant.
-            Founder's Business Idea: ${idea}
-            User Message: ${message}
-            Instructions: Provide a concise, high-level strategic response.
-        `;
+        const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+
+        /**
+         * THE FIX: 
+         * Instead of just passing the model name string, 
+         * we use the getGenerativeModel configuration object.
+         */
+        const model = genAI.getGenerativeModel({ 
+            model: "gemini-1.5-flash" 
+        });
+
+        const prompt = `You are ${agent}. The business idea is: ${idea}. Founder says: ${message}`;
 
         const result = await model.generateContent(prompt);
         const response = await result.response;
@@ -36,9 +31,10 @@ export default async function handler(req, res) {
 
     } catch (error) {
         console.error("Gemini System Error:", error);
+        // This will help you see if it's still a 404 or a new error
         return res.status(500).json({ 
-            text: "The Board is unreachable. Check Vercel logs.", 
-            details: error.message 
+            text: "The Board is currently unavailable.",
+            error: error.message 
         });
     }
 }
