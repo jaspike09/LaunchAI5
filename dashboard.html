@@ -78,8 +78,7 @@
         </div>
     </main>
 
-    <script>
-        // 1. DATABASE CONFIG
+    <script>// 1. DATABASE CONFIG
         const SUPABASE_URL = 'https://yvgzyymjymrgjhhthgtj.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl2Z3p5eW1qeW1yZ2poaHRoZ3RqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk5OTc1MzIsImV4cCI6MjA4NTU3MzUzMn0.814FVde267XILaw-VA76Yuk6Y6BVQpCr_5fAF2KtBFw'; 
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -87,28 +86,22 @@
         let currentAgent = "MentorAI";
         let userProfile = null;
 
-        // 2. ROBUST INITIALIZATION
         async function init() {
             try {
                 const { data: { session }, error: sessionError } = await _supabase.auth.getSession();
-                
                 if (sessionError || !session) {
                     window.location.href = 'auth.html';
                     return; 
                 }
-
-                // Safe Element Update
                 const nameDisplay = document.getElementById('userNameDisplay');
                 if (nameDisplay) nameDisplay.innerText = session.user.email.split('@')[0];
 
-                // Attempt to load profile
                 const { data: profile } = await _supabase
                     .from('profiles')
                     .select('*')
                     .eq('id', session.user.id)
                     .maybeSingle();
 
-                // Fallback to local storage if profile doesn't exist yet
                 userProfile = profile || { 
                     id: session.user.id, 
                     business_idea: localStorage.getItem('userBusinessIdea') || "Stealth Venture" 
@@ -116,40 +109,30 @@
 
                 const ideaDisplay = document.getElementById('ideaDisplay');
                 if (ideaDisplay) ideaDisplay.innerText = `"${userProfile.business_idea}"`;
-
             } catch (err) {
                 console.error("Init Error:", err);
             }
         }
 
-        // 3. NAVIGATION LOGIC
         function showSection(id) {
-            // Hide everything
             document.getElementById('overview').classList.add('hidden');
             document.getElementById('chatArea').classList.add('hidden');
-            
-            // Show target
             const target = document.getElementById(id);
             if (target) target.classList.remove('hidden');
-
-            // Reset links
             document.querySelectorAll('.sidebar-link').forEach(link => link.classList.remove('active-link'));
-            
-            // Update title
             document.getElementById('sectionTitle').innerText = (id === 'chatArea') ? currentAgent : "Mission Control";
         }
 
         function openChat(agent) {
             currentAgent = agent;
             showSection('chatArea');
-            // If starting fresh, show a tiny intro
             const chatBox = document.getElementById('chatBox');
-            if (chatBox.innerHTML.includes("Encrypted session ready")) {
+            if (chatBox.innerText.includes("Encrypted session ready")) {
                 chatBox.innerHTML = `<div class="text-blue-400 text-[10px] font-bold uppercase tracking-widest border-b border-white/5 pb-2 mb-4">Uplink: ${agent}</div>`;
             }
         }
 
-        // 4. CHAT LOGIC
+        // UPDATED CHAT LOGIC WITH STREAMING SUPPORT
         async function sendMessage() {
             const input = document.getElementById('chatInput');
             const text = input.value.trim();
@@ -157,37 +140,56 @@
 
             const chatBox = document.getElementById('chatBox');
             
-            // Render User Bubble
-            chatBox.innerHTML += `<div class="flex justify-end"><div class="bg-blue-600/20 p-4 rounded-2xl border border-blue-500/30 max-w-[85%] text-sm">${text}</div></div>`;
+            // 1. Render User Bubble
+            chatBox.innerHTML += `<div class="flex justify-end"><div class="bg-blue-600/20 p-4 rounded-2xl border border-blue-500/30 max-w-[85% text-sm]">${text}</div></div>`;
             input.value = "";
             chatBox.scrollTop = chatBox.scrollHeight;
 
-            // Loading indicator
-            const loadId = 'load-' + Date.now();
-            chatBox.innerHTML += `<div id="${loadId}" class="text-blue-400 text-[10px] animate-pulse italic">The Board is deliberating...</div>`;
+            // 2. Setup AI Bubble for Streaming
+            const aiBubbleId = 'ai-' + Date.now();
+            chatBox.innerHTML += `
+                <div class="flex justify-start">
+                    <div class="glass-panel p-4 rounded-2xl border border-white/10 max-w-[85%] text-sm">
+                        <b class="text-blue-400 block mb-1 text-[10px] uppercase">${currentAgent}</b>
+                        <span id="${aiBubbleId}" class="inline">...</span>
+                    </div>
+                </div>`;
+            chatBox.scrollTop = chatBox.scrollHeight;
 
             try {
                 const response = await fetch('/api/architect', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ 
-                        message: text, 
-                        agent: currentAgent, 
-                        idea: userProfile.business_idea 
+                        // The key MUST be 'messages' and it MUST be an array for the Vercel AI SDK
+                        messages: [
+                            { role: 'system', content: `You are ${currentAgent}. Help the user with their business: ${userProfile.business_idea}` },
+                            { role: 'user', content: text }
+                        ]
                     })
                 });
-                const data = await response.json();
-                
-                document.getElementById(loadId).remove();
-                const aiText = data.text || "Connection weak. Re-send command.";
 
-                // Render AI Bubble
-                chatBox.innerHTML += `<div class="flex justify-start"><div class="glass-panel p-4 rounded-2xl border border-white/10 max-w-[85%] text-sm"><b class="text-blue-400 block mb-1 text-[10px] uppercase">${currentAgent}</b>${aiText}</div></div>`;
+                if (!response.ok) throw new Error('API down');
+
+                // 3. Handle the Stream
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                const textTarget = document.getElementById(aiBubbleId);
+                textTarget.innerText = ""; // Clear the "..."
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+                    
+                    const chunk = decoder.decode(value, { stream: true });
+                    textTarget.innerText += chunk;
+                    chatBox.scrollTop = chatBox.scrollHeight;
+                }
 
             } catch (e) {
-                if (document.getElementById(loadId)) document.getElementById(loadId).innerText = "Error: Uplink lost.";
+                console.error(e);
+                document.getElementById(aiBubbleId).innerText = "Uplink failed. Check Vercel logs.";
             }
-            chatBox.scrollTop = chatBox.scrollHeight;
         }
 
         async function logout() {
@@ -195,7 +197,6 @@
             window.location.href = 'index.html';
         }
 
-        // Initialize
         init();
     </script>
 </body>
