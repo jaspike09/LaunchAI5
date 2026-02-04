@@ -8,26 +8,31 @@ export default async function handler(req) {
 
   try {
     const body = await req.json();
-    
-    // Safety: Capture the message regardless of whether the frontend sends 'message' or 'messages'
-    const userText = body.message || (body.messages && body.messages[body.messages.length - 1].content);
+    const messages = body.messages || (body.message ? [{ role: 'user', content: body.message }] : null);
 
-    if (!userText) {
-      return new Response(JSON.stringify({ error: "No message found in request body" }), { status: 400 });
-    }
+    if (!messages) return new Response('No prompt', { status: 400 });
 
+    // 2026 FIX: Gemini 1.5 is GONE. Using Gemini 3 Flash.
     const result = await streamText({
-      // Using the '-latest' suffix forces the API to find the active deployment on the v1beta endpoint
-      model: google('gemini-1.5-flash-latest'), 
-      messages: [
-        { role: 'system', content: `You are ${body.agent || 'an AI assistant'}. Idea: ${body.idea || 'Business'}` },
-        { role: 'user', content: userText }
-      ],
+      model: google('gemini-3-flash-preview'), 
+      messages: messages,
+      // Optional: Add a small temperature for better "mentor" vibes
+      temperature: 0.7,
     });
 
     return result.toTextStreamResponse();
   } catch (error) {
-    console.error('API Error:', error);
-    return new Response(JSON.stringify({ error: error.message }), { status: 500 });
+    console.error('Final API Attempt Error:', error);
+    
+    // EMERGENCY FALLBACK: If Gemini 3 is busy, try the stable 2.5
+    try {
+        const fallback = await streamText({
+          model: google('gemini-2.5-flash'),
+          messages: messages,
+        });
+        return fallback.toTextStreamResponse();
+    } catch (fallbackError) {
+        return new Response(JSON.stringify({ error: "All 2026 models failed. Check API Key." }), { status: 500 });
+    }
   }
 }
