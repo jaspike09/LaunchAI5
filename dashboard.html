@@ -133,65 +133,50 @@
         }
 
         // UPDATED CHAT LOGIC WITH STREAMING SUPPORT
-        async function sendMessage() {
-            const input = document.getElementById('chatInput');
-            const text = input.value.trim();
-            if (!text || !userProfile) return;
+       async function sendMessage() {
+    const input = document.getElementById('chatInput');
+    const chatBox = document.getElementById('chatBox');
+    const text = input.value.trim();
+    
+    if (!text) return;
 
-            const chatBox = document.getElementById('chatBox');
-            
-            // 1. Render User Bubble
-            chatBox.innerHTML += `<div class="flex justify-end"><div class="bg-blue-600/20 p-4 rounded-2xl border border-blue-500/30 max-w-[85% text-sm]">${text}</div></div>`;
-            input.value = "";
+    // UI: Add User Message
+    chatBox.innerHTML += `<div class="flex justify-end"><div class="bg-blue-600/20 p-4 rounded-2xl border border-blue-500/30 max-w-[85%] text-sm">${text}</div></div>`;
+    input.value = "";
+    
+    // UI: Prepare AI Bubble
+    const aiBubbleId = 'ai-' + Date.now();
+    chatBox.innerHTML += `<div class="flex justify-start"><div class="glass-panel p-4 rounded-2xl border border-white/10 max-w-[85%] text-sm"><b class="text-blue-400 block mb-1 text-[10px] uppercase">${currentAgent}</b><span id="${aiBubbleId}">...</span></div></div>`;
+    chatBox.scrollTop = chatBox.scrollHeight;
+
+    try {
+        const response = await fetch('/api/architect', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                message: text,
+                agent: currentAgent,
+                idea: userProfile.business_idea
+            })
+        });
+
+        if (!response.ok) throw new Error('Uplink 500');
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        const textTarget = document.getElementById(aiBubbleId);
+        textTarget.innerText = ""; 
+
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            textTarget.innerText += decoder.decode(value);
             chatBox.scrollTop = chatBox.scrollHeight;
-
-            // 2. Setup AI Bubble for Streaming
-            const aiBubbleId = 'ai-' + Date.now();
-            chatBox.innerHTML += `
-                <div class="flex justify-start">
-                    <div class="glass-panel p-4 rounded-2xl border border-white/10 max-w-[85%] text-sm">
-                        <b class="text-blue-400 block mb-1 text-[10px] uppercase">${currentAgent}</b>
-                        <span id="${aiBubbleId}" class="inline">...</span>
-                    </div>
-                </div>`;
-            chatBox.scrollTop = chatBox.scrollHeight;
-
-            try {
-                const response = await fetch('/api/architect', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        // The key MUST be 'messages' and it MUST be an array for the Vercel AI SDK
-                        messages: [
-                            { role: 'system', content: `You are ${currentAgent}. Help the user with their business: ${userProfile.business_idea}` },
-                            { role: 'user', content: text }
-                        ]
-                    })
-                });
-
-                if (!response.ok) throw new Error('API down');
-
-                // 3. Handle the Stream
-                const reader = response.body.getReader();
-                const decoder = new TextDecoder();
-                const textTarget = document.getElementById(aiBubbleId);
-                textTarget.innerText = ""; // Clear the "..."
-
-                while (true) {
-                    const { done, value } = await reader.read();
-                    if (done) break;
-                    
-                    const chunk = decoder.decode(value, { stream: true });
-                    textTarget.innerText += chunk;
-                    chatBox.scrollTop = chatBox.scrollHeight;
-                }
-
-            } catch (e) {
-                console.error(e);
-                document.getElementById(aiBubbleId).innerText = "Uplink failed. Check Vercel logs.";
-            }
         }
-
+    } catch (e) {
+        document.getElementById(aiBubbleId).innerText = "Error: " + e.message;
+    }
+}
         async function logout() {
             await _supabase.auth.signOut();
             window.location.href = 'index.html';
