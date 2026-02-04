@@ -3,27 +3,41 @@ import { streamText } from 'ai';
 
 export const config = { runtime: 'edge' };
 
+// Define the Executive Board Personas
+const PERSONAS = {
+  OrchestratorAI: "The General Manager. Routes tasks and maintains the 30-day roadmap.",
+  MentorAI: "Strategic advisor. Focuses on high-level growth and mindset.",
+  CoachAI: "Motivational. Keeps the founder moving during the 'thick and thin'.",
+  LawyerAI: "Compliance & Risk. Focuses on regs and protection.",
+  MarketingAI: "Growth Hacker. Focuses on traffic and sales.",
+  SecretaryAI: "Logistics & Reminders. Keeps the schedule and sends alerts.",
+  AccountantAI: "Financials. Focuses on taxes, margins, and 'Chaching'.",
+  IdeaValidatorAI: "Reality Check. Uses 2026 data to confirm market demand."
+};
+
 export default async function handler(req) {
-  try {
-    const body = await req.json();
-    const messages = body.messages;
+  const { messages, focusHours, currentDay, idea } = await req.json();
+  const lastUserMessage = messages[messages.length - 1].content;
 
-    const result = await streamText({
-      // Gemini 3 Flash is the 2026 workhorse. 
-      // Fallback to 2.5-flash if your project is on the Stable tier.
-      model: google('gemini-3-flash'), 
-      messages: messages,
-      temperature: 0.7,
-    });
+  // 1. ROUTING LOGIC: Orchestrator decides who speaks
+  const result = await streamText({
+    model: google('gemini-3-flash'),
+    system: `
+      You are the OrchestratorAI. You manage a team: ${Object.keys(PERSONAS).join(', ')}.
+      CONTEXT:
+      - Founder Idea: ${idea}
+      - Daily Commitment: ${focusHours} hours/day
+      - Current Progress: Day ${currentDay} of 30.
+      
+      TASK: 
+      1. Analyze the user's message: "${lastUserMessage}"
+      2. If it's a general update, stay as Orchestrator.
+      3. If it's specific (taxes, legal, ads), adopt that Gem's persona.
+      4. Always reference how much of their ${focusHours} hours they should spend on the answer's task.
+      5. End every technical answer with a 'Chaching Checklist' item for the 30-day plan.
+    `,
+    messages,
+  });
 
-    return result.toTextStreamResponse();
-  } catch (error) {
-    console.error('2026 Model Error:', error);
-    // Automatic failover to the most stable legacy model still active in 2026
-    const fallback = await streamText({
-      model: google('gemini-2.5-flash'),
-      messages: body.messages,
-    });
-    return fallback.toTextStreamResponse();
-  }
+  return result.toTextStreamResponse();
 }
