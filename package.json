@@ -1,4 +1,7 @@
-{
+{"scripts": {
+  "build": "npx @tailwindcss/cli -i ./src/input.css -o ./dist/output.css",
+  "dev": "npx @tailwindcss/cli -i ./src/input.css -o ./dist/output.css --watch"
+}
   "name": "launch-ai",
   "version": "1.0.0",
   "type": "module",
