@@ -1,165 +1,55 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LaunchAI | Executive Dashboard</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <style>
-        .sidebar-link:hover { background: rgba(59, 130, 246, 0.1); color: #60a5fa; }
-        .active-link { background: rgba(59, 130, 246, 0.2); color: #60a5fa; border-right: 4px solid #3b82f6; }
-        .glass-panel { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.05); }
-    </style>
-</head>
-<body class="bg-slate-950 text-white font-sans flex h-screen overflow-hidden">
+const SUPABASE_URL = 'https://yvgzyymjymrgjhhthgtj.supabase.co';
+const SUPABASE_KEY = 'YOUR_KEY_HERE'; // Keep your real key
+const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    <aside class="w-64 border-r border-white/5 flex flex-col bg-slate-950">
-        <div class="p-6 text-2xl font-bold tracking-tighter border-b border-white/5">
-            Launch<span class="text-blue-500">AI</span>
-        </div>
+let currentAgent = "MentorAI";
+let userProfile = null;
+
+async function init() {
+    try {
+        const { data: { session } } = await _supabase.auth.getSession();
+        if (!session) {
+            window.location.href = 'auth.html';
+            return;
+        }
+
+        const user = session.user;
         
-        <nav class="flex-1 mt-6 space-y-1 overflow-y-auto">
-            <a href="#" onclick="showSection('overview')" class="sidebar-link active-link flex items-center px-6 py-4 transition">
-                <i class="fa-solid fa-chart-line mr-3"></i> Mission Control
-            </a>
-            <div class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest mt-4">The Board</div>
-            
-            <a href="#" onclick="openChat('MentorAI')" class="sidebar-link flex items-center px-6 py-4 transition">
-                <i class="fa-solid fa-user-tie text-blue-400 mr-3"></i> MentorAI
-            </a>
-            <a href="#" onclick="openChat('MarketingAI')" class="sidebar-link flex items-center px-6 py-4 transition">
-                <i class="fa-solid fa-bullhorn text-orange-400 mr-3"></i> MarketingAI
-            </a>
-        </nav>
+        // Safe Update: Check if element exists before setting innerText
+        const nameEl = document.getElementById('userNameDisplay');
+        if (nameEl) nameEl.innerText = user.email.split('@')[0];
 
-        <div class="p-6 border-t border-white/5">
-            <button onclick="logout()" class="w-full py-2 border border-slate-700 rounded-lg text-[10px] text-slate-400 uppercase font-bold tracking-tighter">
-                Terminate Session
-            </button>
-        </div>
-    </aside>
+        // The 401 Fix: Use maybeSingle() and handle the null profile case
+        const { data: profile, error } = await _supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', user.id)
+            .maybeSingle();
 
-    <main class="flex-1 flex flex-col bg-slate-900">
-        <header class="h-16 border-b border-white/5 flex items-center justify-between px-8 bg-slate-950/50">
-            <h2 id="sectionTitle" class="text-lg font-semibold">Mission Control</h2>
-        </header>
+        // Fallback profile if DB fetch fails or is empty
+        userProfile = profile || { 
+            id: user.id, 
+            business_idea: localStorage.getItem('userBusinessIdea') || "Stealth Project" 
+        };
 
-        <div class="flex-1 overflow-y-auto p-8">
-            <div id="overview" class="space-y-6">
-                <div class="glass-panel p-8 rounded-3xl">
-                    <h4 class="text-xl font-bold mb-4">Welcome, <span id="userNameDisplay">Founder</span></h4>
-                    <p class="text-slate-300">Venture Idea: <span class="text-blue-400" id="ideaDisplay">Loading...</span></p>
-                </div>
-            </div>
+        const ideaEl = document.getElementById('ideaDisplay');
+        if (ideaEl) ideaEl.innerText = userProfile.business_idea;
 
-            <div id="chatArea" class="hidden flex flex-col h-full">
-                <div id="chatBox" class="flex-1 glass-panel rounded-2xl p-6 mb-4 overflow-y-auto min-h-[400px] space-y-4"></div>
-                <div class="flex gap-2">
-                    <input type="text" id="chatInput" placeholder="Send instructions..." class="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-blue-500">
-                    <button onclick="sendMessage()" class="bg-blue-600 px-6 rounded-xl font-bold hover:bg-blue-500 transition">
-                        <i class="fa-solid fa-paper-plane"></i>
-                    </button>
-                </div>
-            </div>
-        </div>
-    </main>
+    } catch (err) {
+        console.error("Critical Init Error:", err);
+    }
+}
 
-    <script>
-        const SUPABASE_URL = 'https://yvgzyymjymrgjhhthgtj.supabase.co';
-        const SUPABASE_KEY = 'YOUR_KEY_HERE'; 
-        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+// Add the missing openChat function
+function openChat(agent) {
+    currentAgent = agent;
+    const sections = ['overview', 'roadmap', 'chatArea'];
+    sections.forEach(s => document.getElementById(s).classList.add('hidden'));
+    document.getElementById('chatArea').classList.remove('hidden');
+    document.getElementById('sectionTitle').innerText = agent;
+    
+    const chatBox = document.getElementById('chatBox');
+    chatBox.innerHTML = `<div class="text-blue-400 text-xs italic">Encrypted line open with ${agent}...</div>`;
+}
 
-        let currentAgent = "MentorAI";
-        let userProfile = null;
-
-        // --- 1. THE FIX FOR 401 & INNERTEXT ERRORS ---
-        async function init() {
-            try {
-                const { data: { session }, error: sessionError } = await _supabase.auth.getSession();
-                
-                if (sessionError || !session) {
-                    console.error("Auth session missing");
-                    window.location.href = 'auth.html';
-                    return; 
-                }
-
-                // Check for name display element safely
-                const nameDisplay = document.getElementById('userNameDisplay');
-                if (nameDisplay) nameDisplay.innerText = session.user.email.split('@')[0];
-
-                // Fetch profile with a fallback to prevent 401/406 breaking the UI
-                const { data: profile } = await _supabase
-                    .from('profiles')
-                    .select('*')
-                    .eq('id', session.user.id)
-                    .maybeSingle();
-
-                userProfile = profile || { 
-                    id: session.user.id, 
-                    business_idea: localStorage.getItem('userBusinessIdea') || "Stealth Venture" 
-                };
-
-                const ideaDisplay = document.getElementById('ideaDisplay');
-                if (ideaDisplay) ideaDisplay.innerText = userProfile.business_idea;
-
-            } catch (err) {
-                console.error("Initialization failed:", err);
-            }
-        }
-
-        // --- 2. THE FIX FOR "openChat IS NOT DEFINED" ---
-        function openChat(agent) {
-            currentAgent = agent;
-            showSection('chatArea');
-            const chatBox = document.getElementById('chatBox');
-            chatBox.innerHTML = `<div class="text-blue-400 text-xs italic">Encrypted link established with ${agent}...</div>`;
-        }
-
-        function showSection(id) {
-            const sections = ['overview', 'chatArea'];
-            sections.forEach(s => {
-                const el = document.getElementById(s);
-                if (el) el.classList.add('hidden');
-            });
-            
-            const activeSection = document.getElementById(id);
-            if (activeSection) activeSection.classList.remove('hidden');
-            
-            document.getElementById('sectionTitle').innerText = (id === 'chatArea') ? currentAgent : "Mission Control";
-        }
-
-        async function sendMessage() {
-            const input = document.getElementById('chatInput');
-            const text = input.value.trim();
-            if (!text || !userProfile) return;
-
-            const chatBox = document.getElementById('chatBox');
-            chatBox.innerHTML += `<div class="flex justify-end"><div class="bg-blue-600/20 p-3 rounded-xl text-sm">${text}</div></div>`;
-            input.value = "";
-
-            try {
-                const response = await fetch('/api/architect', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ message: text, agent: currentAgent, idea: userProfile.business_idea })
-                });
-                const data = await response.json();
-                chatBox.innerHTML += `<div class="flex justify-start"><div class="glass-panel p-3 rounded-xl text-sm"><b class="text-blue-400">${currentAgent}:</b><br>${data.text}</div></div>`;
-            } catch (e) {
-                chatBox.innerHTML += `<p class="text-red-500 text-xs">Uplink Error.</p>`;
-            }
-            chatBox.scrollTop = chatBox.scrollHeight;
-        }
-
-        async function logout() {
-            await _supabase.auth.signOut();
-            window.location.href = 'index.html';
-        }
-
-        // Run initialization
-        init();
-    </script>
-</body>
-</html>
+init();
