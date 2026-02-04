@@ -251,12 +251,18 @@
         }
 
         // --- 4. 2026 FEATURES ---
-        async function fetchDailyIdea() {
-            // In a real app, this hits your /api/daily-idea
-            setTimeout(() => {
-                document.getElementById('dailyIdeaText').innerText = "AI-Driven Hyper-Local Drone Logistics for Urban Pharmacies.";
-            }, 1500);
+       async function fetchDailyIdea() {
+    try {
+        const res = await fetch('/api/daily-idea');
+        const data = await res.json();
+        if (data.success) {
+            // Take the latest idea from the array
+            document.getElementById('dailyIdeaText').innerText = data.data[0].content;
         }
+    } catch (e) {
+        document.getElementById('dailyIdeaText').innerText = "Board is still strategizing...";
+    }
+}
 
         async function updateProfile() {
             userProfile.focusHours = document.getElementById('focusHours').value;
