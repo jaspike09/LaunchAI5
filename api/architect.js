@@ -7,7 +7,8 @@ export default async function handler(req, res) {
   if (!apiKey) return res.status(500).json({ text: "API Key missing in Vercel." });
 
   const genAI = new GoogleGenerativeAI(apiKey);
-
+// This forces the SDK to use the stable v1 endpoint
+const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" }, { apiVersion: 'v1' });
   try {
     const { message, agent, idea } = req.body;
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro-latest" });
