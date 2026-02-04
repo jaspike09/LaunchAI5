@@ -1,27 +1,30 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
 export default async function handler(req, res) {
-    if (req.method !== 'POST') return res.status(405).json({ error: 'Method Not Allowed' });
+    // FIX for "Method Not Allowed": Vercel functions sometimes need explicit method handling
+    if (req.method !== 'POST') {
+        return res.status(405).json({ error: "Method Not Allowed. Use POST." });
+    }
 
     try {
         const { message, agent, idea } = req.body;
         
         if (!process.env.GEMINI_API_KEY) {
-            return res.status(500).json({ text: "Backend Error: Missing GEMINI_API_KEY." });
+            return res.status(500).json({ text: "Missing GEMINI_API_KEY in Vercel." });
         }
 
         const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
         /**
-         * FIX: We use the stable 'v1' version. 
-         * Note: Most SDKs default to v1 if you don't specify, 
-         * but your error proves it was stuck on v1beta.
+         * THE FIX: Specify gemini-1.5-flash. 
+         * The latest SDK (v1.x.x) defaults to v1. 
+         * If you are still on v0.2.1, you MUST update your package.json.
          */
         const model = genAI.getGenerativeModel({ 
-            model: "gemini-1.5-flash"
+            model: "gemini-1.5-flash" 
         });
 
-        const prompt = `Role: ${agent}. Context: Business idea is ${idea}. User says: ${message}`;
+        const prompt = `You are ${agent}. Startup idea: ${idea}. User message: ${message}`;
 
         const result = await model.generateContent(prompt);
         const response = await result.response;
@@ -32,7 +35,7 @@ export default async function handler(req, res) {
     } catch (error) {
         console.error("Gemini System Error:", error);
         return res.status(500).json({ 
-            text: "The Board is currently offline.",
+            text: "The Board is unreachable.", 
             details: error.message 
         });
     }
