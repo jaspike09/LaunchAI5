@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LaunchAI | Executive Dashboard</title>
+    <title>LaunchAI | Executive Board Dashboard</title>
     
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <link href="/dist/output.css" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
         .sidebar-link:hover { background: rgba(59, 130, 246, 0.1); color: #60a5fa; }
         .active-link { background: rgba(59, 130, 246, 0.2); color: #60a5fa; border-right: 4px solid #3b82f6; }
@@ -18,26 +18,42 @@
 </head>
 <body class="bg-slate-950 text-white font-sans flex h-screen overflow-hidden">
 
-    <aside class="w-64 border-r border-white/5 flex flex-col bg-slate-950">
+    <aside class="w-72 border-r border-white/5 flex flex-col bg-slate-950">
         <div class="p-6 text-2xl font-bold tracking-tighter border-b border-white/5">
             Launch<span class="text-blue-500">AI</span>
         </div>
         
-        <nav class="flex-1 mt-6 space-y-1 overflow-y-auto">
-            <a href="#" onclick="showSection('overview')" class="sidebar-link active-link flex items-center px-6 py-4 transition">
-                <i class="fa-solid fa-chart-line mr-3"></i> Mission Control
+        <nav class="flex-1 mt-4 space-y-1 overflow-y-auto">
+            <a href="#" onclick="showSection('overview')" id="link-overview" class="sidebar-link active-link flex items-center px-6 py-3 transition">
+                <i class="fa-solid fa-rocket mr-3 text-blue-500"></i> Mission Control
             </a>
-            <div class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest mt-4">The Board</div>
+
+            <div class="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Executive Board</div>
             
-            <a href="#" onclick="openChat('MentorAI')" class="sidebar-link flex items-center px-6 py-4 transition">
-                <i class="fa-solid fa-user-tie text-blue-400 mr-3"></i> MentorAI
+            <a href="#" onclick="openChat('MentorAI')" class="sidebar-link flex items-center px-6 py-3 transition">
+                <i class="fa-solid fa-user-tie text-blue-400 mr-3 w-5"></i> MentorAI
             </a>
-            <a href="#" onclick="openChat('MarketingAI')" class="sidebar-link flex items-center px-6 py-4 transition">
-                <i class="fa-solid fa-bullhorn text-orange-400 mr-3"></i> MarketingAI
+            <a href="#" onclick="openChat('IdeaValidatorAI')" class="sidebar-link flex items-center px-6 py-3 transition">
+                <i class="fa-solid fa-microscope text-cyan-400 mr-3 w-5"></i> IdeaValidatorAI
+            </a>
+            <a href="#" onclick="openChat('MarketingAI')" class="sidebar-link flex items-center px-6 py-3 transition">
+                <i class="fa-solid fa-bullhorn text-orange-400 mr-3 w-5"></i> MarketingAI
+            </a>
+            <a href="#" onclick="openChat('LawyerAI')" class="sidebar-link flex items-center px-6 py-3 transition">
+                <i class="fa-solid fa-scale-balanced text-red-400 mr-3 w-5"></i> LawyerAI
+            </a>
+            <a href="#" onclick="openChat('AccountantAI')" class="sidebar-link flex items-center px-6 py-3 transition">
+                <i class="fa-solid fa-calculator text-emerald-400 mr-3 w-5"></i> AccountantAI
+            </a>
+            <a href="#" onclick="openChat('SecretaryAI')" class="sidebar-link flex items-center px-6 py-3 transition">
+                <i class="fa-solid fa-calendar-check text-purple-400 mr-3 w-5"></i> SecretaryAI
+            </a>
+            <a href="#" onclick="openChat('CoachAI')" class="sidebar-link flex items-center px-6 py-3 transition">
+                <i class="fa-solid fa-bolt text-yellow-400 mr-3 w-5"></i> CoachAI
             </a>
         </nav>
 
-        <div class="p-6 border-t border-white/5">
+        <div class="p-6 border-t border-white/5 bg-slate-900/50">
             <button onclick="logout()" class="w-full py-2 border border-slate-700 rounded-lg text-[10px] text-slate-400 uppercase font-bold tracking-tighter hover:bg-red-500/10 transition">
                 Terminate Session
             </button>
@@ -46,80 +62,139 @@
 
     <main class="flex-1 flex flex-col bg-slate-900">
         <header class="h-16 border-b border-white/5 flex items-center justify-between px-8 bg-slate-950/50">
-            <h2 id="sectionTitle" class="text-lg font-semibold">Mission Control</h2>
             <div class="flex items-center gap-4">
-                <div class="flex flex-col items-end">
-                    <span id="userNameDisplay" class="text-xs font-bold text-blue-400 tracking-tight">Founder</span>
+                <h2 id="sectionTitle" class="text-lg font-semibold">Mission Control</h2>
+                <span id="dayBadge" class="bg-blue-500/20 text-blue-400 text-[10px] px-2 py-1 rounded border border-blue-500/30 font-bold">DAY 1</span>
+            </div>
+            <div class="flex items-center gap-4">
+                <div class="text-right">
+                    <p id="userNameDisplay" class="text-xs font-bold text-blue-400">Founder</p>
+                    <p class="text-[9px] text-slate-500 uppercase tracking-widest">Status: Active</p>
                 </div>
-                <div class="w-8 h-8 rounded-full bg-slate-800 border border-white/10 flex items-center justify-center font-bold text-xs">F</div>
+                <div class="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center font-bold border-2 border-white/10">F</div>
             </div>
         </header>
 
         <div class="flex-1 overflow-y-auto p-8">
+            
             <div id="overview" class="space-y-6">
-                <div class="glass-panel p-8 rounded-3xl border border-blue-500/10">
-                    <h4 class="text-slate-500 text-xs font-bold uppercase tracking-widest mb-2">Venture Analysis</h4>
-                    <h2 id="ideaDisplay" class="text-2xl font-bold mb-4 italic text-white">"Analyzing your idea..."</h2>
-                    <p class="text-slate-400 text-sm max-w-xl">Uplink established. Select a board member from the left to begin strategizing.</p>
+                
+                <div class="glass-panel p-8 rounded-3xl border border-blue-500/20">
+                    <div class="flex justify-between items-start mb-6">
+                        <div>
+                            <h4 class="text-slate-500 text-[10px] font-bold uppercase tracking-widest mb-1">Venture Pipeline</h4>
+                            <h2 id="ideaDisplay" class="text-2xl font-bold italic text-white">"Analyzing your idea..."</h2>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-[10px] text-slate-500 uppercase font-bold">Launch Goal</p>
+                            <p class="text-xl font-bold text-emerald-400">CHACHING!</p>
+                        </div>
+                    </div>
+                    <div class="w-full bg-white/5 rounded-full h-4 overflow-hidden border border-white/5">
+                        <div id="progressBar" class="bg-gradient-to-r from-blue-600 via-cyan-400 to-emerald-500 h-full rounded-full transition-all duration-1000" style="width: 3.3%"></div>
+                    </div>
+                    <div class="flex justify-between mt-3 text-[10px] text-slate-500 font-bold uppercase tracking-widest">
+                        <span>Day 1: Validation</span>
+                        <span>Day 15: MVP</span>
+                        <span>Day 30: Scale</span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="glass-panel p-6 rounded-3xl border border-white/5">
+                        <h4 class="text-slate-500 text-[10px] font-bold uppercase tracking-widest mb-4">Daily Commitment</h4>
+                        <div class="flex items-center gap-4">
+                            <input type="number" id="focusHours" value="4" onchange="updateProfile()" class="w-16 bg-blue-600/20 border border-blue-500/30 rounded-xl px-3 py-2 text-xl font-bold text-white outline-none">
+                            <span class="text-sm text-slate-400 font-medium">Hours / Day Focus</span>
+                        </div>
+                        <p class="text-[10px] text-slate-500 mt-4 italic"><i class="fa-solid fa-clock mr-1"></i> SecretaryAI will monitor your login frequency.</p>
+                    </div>
+
+                    <div class="bg-gradient-to-br from-blue-600/20 to-purple-600/20 p-6 rounded-3xl border border-blue-500/30 relative overflow-hidden group">
+                        <div class="relative z-10">
+                            <h4 class="text-blue-400 text-[10px] font-bold uppercase tracking-widest mb-2">💡 DailyIdea4U (Feb 2026)</h4>
+                            <p id="dailyIdeaText" class="text-sm font-semibold text-white mb-3">Fetching today's market opportunity...</p>
+                            <a href="#" class="text-[10px] bg-blue-600 px-3 py-1.5 rounded-lg uppercase font-bold tracking-tighter hover:bg-blue-500 transition inline-block">Post to My Page</a>
+                        </div>
+                        <i class="fa-solid fa-money-bill-trend-up absolute -right-4 -bottom-4 text-7xl text-white/5 group-hover:scale-110 transition-transform"></i>
+                    </div>
                 </div>
             </div>
 
-            <div id="chatArea" class="hidden flex flex-col h-full max-h-[calc(100vh-160px)]">
+            <div id="chatArea" class="hidden flex flex-col h-full">
                 <div id="chatBox" class="flex-1 glass-panel rounded-2xl p-6 mb-4 overflow-y-auto space-y-4 border border-white/5">
-                    <div class="text-slate-500 text-center py-20 text-xs italic">Encrypted session ready.</div>
+                    <div class="text-slate-500 text-center py-20 text-xs italic">Uplink secure. The Board is listening.</div>
                 </div>
-                <div class="flex gap-2 pb-6">
-                    <input type="text" id="chatInput" placeholder="Send message..." class="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-blue-500 transition-all">
-                    <button onclick="sendMessage()" class="bg-blue-600 px-6 rounded-xl font-bold hover:bg-blue-500 active:scale-95 transition-all">
-                        <i class="fa-solid fa-paper-plane"></i>
+                <div class="flex gap-3 pb-4">
+                    <input type="text" id="chatInput" placeholder="Message the Board..." class="flex-1 bg-white/5 border border-white/10 rounded-2xl px-6 py-4 outline-none focus:border-blue-500 transition-all text-sm">
+                    <button onclick="sendMessage()" class="bg-blue-600 px-8 rounded-2xl font-bold hover:bg-blue-500 active:scale-95 transition-all shadow-lg shadow-blue-600/20">
+                        <i class="fa-solid fa-paper-plane mr-2"></i> SEND
                     </button>
                 </div>
             </div>
         </div>
     </main>
 
-    <script>// 1. DATABASE CONFIG
+    <script>
+        // --- 1. CONFIG & STATE ---
         const SUPABASE_URL = 'https://yvgzyymjymrgjhhthgtj.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl2Z3p5eW1qeW1yZ2poaHRoZ3RqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk5OTc1MzIsImV4cCI6MjA4NTU3MzUzMn0.814FVde267XILaw-VA76Yuk6Y6BVQpCr_5fAF2KtBFw'; 
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+        let userProfile = {
+            id: null,
+            idea: "Stealth Venture",
+            focusHours: 4,
+            currentDay: 1
+        };
         let currentAgent = "MentorAI";
-        let userProfile = null;
 
+        // --- 2. INITIALIZATION ---
         async function init() {
-            try {
-                const { data: { session }, error: sessionError } = await _supabase.auth.getSession();
-                if (sessionError || !session) {
-                    window.location.href = 'auth.html';
-                    return; 
-                }
-                const nameDisplay = document.getElementById('userNameDisplay');
-                if (nameDisplay) nameDisplay.innerText = session.user.email.split('@')[0];
+            const { data: { session } } = await _supabase.auth.getSession();
+            if (!session) { window.location.href = 'auth.html'; return; }
 
-                const { data: profile } = await _supabase
-                    .from('profiles')
-                    .select('*')
-                    .eq('id', session.user.id)
-                    .maybeSingle();
-
-                userProfile = profile || { 
-                    id: session.user.id, 
-                    business_idea: localStorage.getItem('userBusinessIdea') || "Stealth Venture" 
+            document.getElementById('userNameDisplay').innerText = session.user.email.split('@')[0];
+            
+            // Fetch Profile or create default
+            const { data: profile } = await _supabase.from('profiles').select('*').eq('id', session.user.id).maybeSingle();
+            
+            if (profile) {
+                userProfile = {
+                    id: session.user.id,
+                    idea: profile.business_idea || localStorage.getItem('userBusinessIdea'),
+                    focusHours: profile.focus_hours || 4,
+                    currentDay: calculateDay(profile.created_at)
                 };
-
-                const ideaDisplay = document.getElementById('ideaDisplay');
-                if (ideaDisplay) ideaDisplay.innerText = `"${userProfile.business_idea}"`;
-            } catch (err) {
-                console.error("Init Error:", err);
             }
+
+            updateUI();
+            fetchDailyIdea();
         }
 
+        function calculateDay(createdDate) {
+            const start = new Date(createdDate);
+            const diff = Math.floor((new Date() - start) / (1000 * 60 * 60 * 24)) + 1;
+            return Math.min(diff, 30);
+        }
+
+        function updateUI() {
+            document.getElementById('ideaDisplay').innerText = `"${userProfile.idea}"`;
+            document.getElementById('dayBadge').innerText = `DAY ${userProfile.currentDay}`;
+            document.getElementById('progressBar').style.width = `${(userProfile.currentDay / 30) * 100}%`;
+            document.getElementById('focusHours').value = userProfile.focusHours;
+        }
+
+        // --- 3. NAVIGATION & CHAT ---
         function showSection(id) {
             document.getElementById('overview').classList.add('hidden');
             document.getElementById('chatArea').classList.add('hidden');
-            const target = document.getElementById(id);
-            if (target) target.classList.remove('hidden');
-            document.querySelectorAll('.sidebar-link').forEach(link => link.classList.remove('active-link'));
+            document.getElementById(id).classList.remove('hidden');
+            
+            // Handle active link styles
+            document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active-link'));
+            if(id === 'overview') document.getElementById('link-overview').classList.add('active-link');
+            
             document.getElementById('sectionTitle').innerText = (id === 'chatArea') ? currentAgent : "Mission Control";
         }
 
@@ -127,56 +202,67 @@
             currentAgent = agent;
             showSection('chatArea');
             const chatBox = document.getElementById('chatBox');
-            if (chatBox.innerText.includes("Encrypted session ready")) {
-                chatBox.innerHTML = `<div class="text-blue-400 text-[10px] font-bold uppercase tracking-widest border-b border-white/5 pb-2 mb-4">Uplink: ${agent}</div>`;
+            chatBox.innerHTML += `<div class="text-blue-400 text-[10px] font-bold uppercase tracking-widest border-b border-white/5 pb-2 mt-6 mb-4">Board Session: ${agent}</div>`;
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const text = input.value.trim();
+            if (!text) return;
+
+            const chatBox = document.getElementById('chatBox');
+            chatBox.innerHTML += `<div class="flex justify-end"><div class="bg-blue-600/20 p-4 rounded-2xl border border-blue-500/30 max-w-[85%] text-sm">${text}</div></div>`;
+            input.value = "";
+            
+            const aiBubbleId = 'ai-' + Date.now();
+            chatBox.innerHTML += `<div class="flex justify-start"><div class="glass-panel p-4 rounded-2xl border border-white/10 max-w-[85%] text-sm">
+                <b class="text-blue-400 block mb-1 text-[10px] uppercase">${currentAgent}</b>
+                <span id="${aiBubbleId}" class="leading-relaxed">...</span>
+            </div></div>`;
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            try {
+                const response = await fetch('/api/architect', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        messages: [{ role: 'user', content: text }],
+                        agent: currentAgent,
+                        idea: userProfile.idea,
+                        focusHours: userProfile.focusHours,
+                        currentDay: userProfile.currentDay
+                    })
+                });
+
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                const textTarget = document.getElementById(aiBubbleId);
+                textTarget.innerText = ""; 
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+                    textTarget.innerText += decoder.decode(value);
+                    chatBox.scrollTop = chatBox.scrollHeight;
+                }
+            } catch (e) {
+                document.getElementById(aiBubbleId).innerText = "Uplink Error. Check Board connection.";
             }
         }
 
-        // UPDATED CHAT LOGIC WITH STREAMING SUPPORT
-       async function sendMessage() {
-    const input = document.getElementById('chatInput');
-    const chatBox = document.getElementById('chatBox');
-    const text = input.value.trim();
-    
-    if (!text) return;
-
-    // UI: Add User Message
-    chatBox.innerHTML += `<div class="flex justify-end"><div class="bg-blue-600/20 p-4 rounded-2xl border border-blue-500/30 max-w-[85%] text-sm">${text}</div></div>`;
-    input.value = "";
-    
-    // UI: Prepare AI Bubble
-    const aiBubbleId = 'ai-' + Date.now();
-    chatBox.innerHTML += `<div class="flex justify-start"><div class="glass-panel p-4 rounded-2xl border border-white/10 max-w-[85%] text-sm"><b class="text-blue-400 block mb-1 text-[10px] uppercase">${currentAgent}</b><span id="${aiBubbleId}">...</span></div></div>`;
-    chatBox.scrollTop = chatBox.scrollHeight;
-
-    try {
-        const response = await fetch('/api/architect', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-                message: text,
-                agent: currentAgent,
-                idea: userProfile.business_idea
-            })
-        });
-
-        if (!response.ok) throw new Error('Uplink 500');
-
-        const reader = response.body.getReader();
-        const decoder = new TextDecoder();
-        const textTarget = document.getElementById(aiBubbleId);
-        textTarget.innerText = ""; 
-
-        while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-            textTarget.innerText += decoder.decode(value);
-            chatBox.scrollTop = chatBox.scrollHeight;
+        // --- 4. 2026 FEATURES ---
+        async function fetchDailyIdea() {
+            // In a real app, this hits your /api/daily-idea
+            setTimeout(() => {
+                document.getElementById('dailyIdeaText').innerText = "AI-Driven Hyper-Local Drone Logistics for Urban Pharmacies.";
+            }, 1500);
         }
-    } catch (e) {
-        document.getElementById(aiBubbleId).innerText = "Error: " + e.message;
-    }
-}
+
+        async function updateProfile() {
+            userProfile.focusHours = document.getElementById('focusHours').value;
+            // Push to Supabase if desired
+        }
+
         async function logout() {
             await _supabase.auth.signOut();
             window.location.href = 'index.html';
