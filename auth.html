@@ -43,73 +43,55 @@
     </div>
 
     <script>
-        // --- 1. CONFIGURATION ---
-        const SUPABASE_URL = 'https://yvgzyymjymrgjhhthgtj.supabase.co';
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl2Z3p5eW1qeW1yZ2poaHRoZ3RqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk5OTc1MzIsImV4cCI6MjA4NTU3MzUzMn0.814FVde267XILaw-VA76Yuk6Y6BVQpCr_5fAF2KtBFw';
+    // --- 1. CONFIGURATION ---
+    const SUPABASE_URL = 'https://yvgzyymjymrgjhhthgtj.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'; 
+    
+    // FIX: This options object prevents the "406 Not Acceptable" error
+    const supabaseOptions = {
+        global: {
+            headers: { 'Accept': 'application/json' }
+        }
+    };
+
+    const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, supabaseOptions);
+
+    // --- 4. AUTH LOGIC ---
+    authForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        messagePara.innerText = "Authenticating...";
         
-        // This options object fixes the 406 "Not Acceptable" error
-        const supabaseOptions = {
-            global: {
-                headers: { 'Accept': 'application/json' }
-            }
-        };
+        const email = emailInput.value;
+        const password = passwordInput.value;
 
-        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, supabaseOptions);
-
-        // --- 2. DOM ELEMENTS ---
-        const authForm = document.getElementById('authForm');
-        const emailInput = document.getElementById('email');
-        const passwordInput = document.getElementById('password');
-        const submitBtn = document.getElementById('submitBtn');
-        const toggleMode = document.getElementById('toggleMode');
-        const authTitle = document.getElementById('authTitle');
-        const messagePara = document.getElementById('message');
-
-        let isSignUp = false;
-
-        // --- 3. TOGGLE LOGIC ---
-        toggleMode.addEventListener('click', () => {
-            isSignUp = !isSignUp;
-            authTitle.innerText = isSignUp ? "Create your Architect account." : "Secure Executive Access";
-            submitBtn.innerText = isSignUp ? "Create Account" : "Continue to Briefing";
-            toggleMode.innerHTML = isSignUp ? "Already have access? <span class='text-blue-400'>Log In</span>" : "Need an account? <span class='text-blue-400'>Sign Up</span>";
-        });
-
-        // --- 4. AUTH LOGIC ---
-        authForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            messagePara.innerText = "Authenticating...";
-            messagePara.className = "mt-4 text-center text-xs font-medium text-blue-400";
-            
-            const email = emailInput.value;
-            const password = passwordInput.value;
-
-            try {
-                if (isSignUp) {
-                    const { data, error } = await _supabase.auth.signUp({ 
-                        email, 
-                        password,
-                        options: {
-                            data: {
-                                initial_idea: localStorage.getItem('userBusinessIdea') || 'New Venture'
-                            }
+        try {
+            if (isSignUp) {
+                // Capturing the idea from localStorage ensures the Board is briefed immediately
+                const userIdea = localStorage.getItem('userBusinessIdea') || 'Stealth Project';
+                
+                const { data, error } = await _supabase.auth.signUp({ 
+                    email, 
+                    password,
+                    options: {
+                        data: {
+                            initial_idea: userIdea,
+                            signup_date: new Date().toISOString()
                         }
-                    });
-                    if (error) throw error;
-                    messagePara.innerText = "Check your email for the confirmation link!";
-                    messagePara.className = "mt-4 text-center text-xs font-medium text-green-400";
-                } else {
-                    const { data, error } = await _supabase.auth.signInWithPassword({ email, password });
-                    if (error) throw error;
-                    
-                    // On success, go to dashboard
-                    window.location.href = 'success.html';
-                }
-            } catch (err) {
-                messagePara.innerText = err.message;
-                messagePara.className = "mt-4 text-center text-xs font-medium text-red-400";
+                    }
+                });
+                if (error) throw error;
+                messagePara.innerText = "Check your email for the confirmation link!";
+                messagePara.className = "mt-4 text-center text-xs font-medium text-green-400";
+            } else {
+                const { data, error } = await _supabase.auth.signInWithPassword({ email, password });
+                if (error) throw error;
+                window.location.href = 'success.html';
             }
-        });
-    </script>
+        } catch (err) {
+            messagePara.innerText = err.message;
+            messagePara.className = "mt-4 text-center text-xs font-medium text-red-400";
+        }
+    });
+</script>
 </body>
 </html>
