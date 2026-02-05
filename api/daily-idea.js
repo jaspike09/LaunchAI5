@@ -3,12 +3,10 @@ import { generateText } from 'ai';
 import { createClient } from '@supabase/supabase-js';
 
 export default async function handler(req) {
-  // CONFIG CHECK: Move inside the handler to prevent boot-time crashes
   const supabaseUrl = process.env.SUPABASE_URL;
   const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
   if (!supabaseUrl || !supabaseKey) {
-    console.error("CRITICAL: Supabase environment variables are missing.");
     return new Response(JSON.stringify({ error: "Server Configuration Error" }), { status: 500 });
   }
 
@@ -16,14 +14,29 @@ export default async function handler(req) {
 
   try {
     const { text } = await generateText({
-      model: google('gemini-1.5-flash'),
-      prompt: "Generate one 2026 business idea for the DailyIdeas4U platform.",
+      // FIX: Using the versioned string to prevent 404
+      model: google('gemini-1.5-flash'), 
+      system: `
+        You are the Opportunity Scout & Managing Partner. 
+        TONE: Authoritative, elite, and execution-focused.
+        MISSION: Generate a 2026 business gap. 
+        MANDATE: Do not ask questions. Provide a direct 4-hour execution plan.
+        TERMINATION: You must end with: "✅ DOCTORATE DIRECTIVE: [Action Item]"
+      `,
+      prompt: "Identify today's highest-leverage venture opportunity.",
     });
 
-    const { data, error } = await supabase.from('daily_ideas').insert([{ content: text }]).select();
+    const { data, error } = await supabase
+      .from('daily_ideas')
+      .insert([{ content: text }])
+      .select();
+
     if (error) throw error;
 
-    return new Response(JSON.stringify({ success: true, idea: data[0] }), { status: 200 });
+    return new Response(JSON.stringify({ success: true, idea: data[0] }), { 
+        status: 200,
+        headers: { 'Content-Type': 'application/json' }
+    });
   } catch (err) {
     return new Response(JSON.stringify({ error: err.message }), { status: 500 });
   }
