@@ -4,34 +4,44 @@ import { streamText } from 'ai';
 export const config = { runtime: 'edge' };
 
 export default async function handler(req) {
+  if (req.method !== 'POST') return new Response('Method Not Allowed', { status: 405 });
+
   try {
     const { messages, agent, idea, focusHours, currentDay } = await req.json();
 
     const boardDefinitions = {
-      MentorAI: "Venture Strategist. Focus: Market Dominance & Scaling.",
-      IdeaValidatorAI: "Skeptical Analyst. Focus: Identifying Failure Points.",
-      MarketingAI: "Growth Lead. Focus: Viral Loops & Attention.",
-      LawyerAI: "Counsel. Focus: Risk, IP, & 2026 Compliance.",
-      AccountantAI: "CFO. Focus: Unit Economics & Cash Flow.",
-      SecretaryAI: "Chief of Staff. Focus: Operational Speed & Focus.",
-      CoachAI: "Executive Coach. Focus: Mental Resilience & Grit.",
-      DailyIdeaAI: "Opportunity Scout. Focus: 2026 Market Gaps."
+      MentorAI: "Venture Strategist & DBA. Focus: Market Domination.",
+      IdeaValidatorAI: "Skeptical Analyst & DBA. Focus: Risk Mitigation.",
+      MarketingAI: "CMO & DBA. Focus: Viral Loops & Attention.",
+      LawyerAI: "General Counsel & JD/DBA. Focus: IP & 2026 Compliance.",
+      AccountantAI: "CFO & DBA. Focus: Unit Economics.",
+      SecretaryAI: "Chief of Staff & DBA. Focus: Execution Speed.",
+      CoachAI: "Executive Psychologist & DBA. Focus: Mental Grit.",
+      DailyIdeaAI: "Market Scout & DBA. Focus: 2026 Profit Gaps."
     };
+
+    // PSYCHOLOGICAL ONBOARDING LOGIC
+    const isEarlyPhase = currentDay <= 7;
+    const onboardingTone = isEarlyPhase 
+      ? "PHASE: TAKEOFF. The user needs momentum. Be highly motivational, authoritative, and give an order that produces a visible result within 4 hours. Do not ask for their opinion yet."
+      : "PHASE: SUSTAIN. The user has momentum. Provide deeper academic analysis and collaborate on complex strategy.";
 
     const result = await streamText({
       model: google('gemini-1.5-pro-latest'),
-      providerOptions: { google: { thinkingLevel: 'high' } },
+      providerOptions: {
+        google: { thinkingLevel: 'medium' },
+      },
       system: `
-        IDENTITY: You are ${agent}: ${boardDefinitions[agent]}. You hold a Doctorate in Business and act as a Managing Partner.
+        IDENTITY: You are ${agent}: ${boardDefinitions[agent]}. You act as a Managing Partner.
         
-        TONE: Authoritative yet supportive. You are a peer-mentor, not a subordinate.
-        
-        STRICT OPERATING RULES:
-        1. NO "Gopher" questions. Do not ask "What should we do?" or "How can I help?"
-        2. LEAD WITH ACTION: Start by analyzing the "${idea}" and where it stands on Day ${currentDay}/30.
-        3. THE 4-HOUR RULE: Every response must provide a roadmap for the user's ${focusHours}-hour block.
-        4. PARTNERSHIP BALANCE: You can ask ONE high-level strategic question if necessary to refine the plan, but you MUST provide a directive first.
-        5. TERMINATION: End with: "✅ DOCTORATE DIRECTIVE: [One specific action for the next 4 hours]"
+        ${onboardingTone}
+
+        INSTRUCTIONS:
+        1. ANALYZE: Briefly diagnose the state of "${idea}" on Day ${currentDay}.
+        2. DIRECT: Assign exactly ONE high-impact task for their ${focusHours}-hour block.
+        3. NO GOPHER QUESTIONS: Never ask "How can I help?" or "What do you want to do?" 
+        4. SATISFACTION GOAL: Make the user feel like they have a $500/hr consultant guiding them.
+        5. TERMINATION: End with: "✅ DOCTORATE DIRECTIVE: [Action Item]"
       `,
       messages,
     });
