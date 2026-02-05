@@ -1,3 +1,4 @@
+// Ensure you have these imports at the top
 import { google } from '@ai-sdk/google';
 import { streamText } from 'ai';
 
