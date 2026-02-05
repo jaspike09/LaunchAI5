@@ -9,21 +9,10 @@
 <body class="bg-slate-900 text-white font-sans">
 
       
-        <nav class="flex-1 mt-6 space-y-1 overflow-y-auto">
-    <a href="#" onclick="openChat('MentorAI')" class="sidebar-link flex items-center px-6 py-4 transition"><i class="fa-solid fa-user-tie text-blue-400 mr-3"></i> MentorAI</a>
-    <a href="#" onclick="openChat('IdeaValidatorAI')" class="sidebar-link flex items-center px-6 py-4 transition"><i class="fa-solid fa-microscope text-cyan-400 mr-3"></i> IdeaValidatorAI</a>
-    <a href="#" onclick="openChat('MarketingAI')" class="sidebar-link flex items-center px-6 py-4 transition"><i class="fa-solid fa-bullhorn text-orange-400 mr-3"></i> MarketingAI</a>
-    
-    <a href="#" onclick="openChat('LawyerAI')" class="sidebar-link flex items-center px-6 py-4 transition"><i class="fa-solid fa-scale-balanced text-red-400 mr-3"></i> LawyerAI</a>
-    <a href="#" onclick="openChat('AccountantAI')" class="sidebar-link flex items-center px-6 py-4 transition"><i class="fa-solid fa-calculator text-emerald-400 mr-3"></i> AccountantAI</a>
-    
-    <a href="#" onclick="openChat('SecretaryAI')" class="sidebar-link flex items-center px-6 py-4 transition"><i class="fa-solid fa-calendar-check text-purple-400 mr-3"></i> SecretaryAI</a>
-    <a href="#" onclick="openChat('CoachAI')" class="sidebar-link flex items-center px-6 py-4 transition"><i class="fa-solid fa-bolt text-yellow-400 mr-3"></i> CoachAI</a>
-    <a href="#" onclick="openChat('DailyIdeaAI')" class="sidebar-link flex items-center px-6 py-4 transition"><i class="fa-solid fa-lightbulb text-pink-400 mr-3"></i> DailyIdeaAI</a>
-              <div id="mainLogo" class="cursor-pointer select-none">
+         <div id="mainLogo" class="cursor-pointer select-none">
             <h1 class="text-2xl font-bold tracking-tighter text-blue-500">LAUNCH<span class="text-white">AI</span></h1>
         </div>
-</nav>
+
    
 
     <main class="max-w-4xl mx-auto mt-20 text-center px-4">
@@ -32,8 +21,7 @@
             <textarea id="ideaInput" class="w-full bg-slate-800 p-4 rounded-xl mb-6 text-white" placeholder="Describe your idea..."></textarea>
             
             <button id="validateBtn" class="bg-green-600 px-8 py-4 rounded-full font-bold mb-10">Validate Vision</button>
-        </div>
-
+        </div
         <div id="resultsArea" class="hidden">
             <h2 class="text-3xl font-bold mb-4">Score: <span id="scoreText">0</span>%</h2>
             <div class="flex flex-col sm:flex-row gap-4 justify-center">
