@@ -21,11 +21,20 @@ export default async function handler(req) {
     };
 
     // PSYCHOLOGICAL ONBOARDING LOGIC
-    const isEarlyPhase = currentDay <= 7;
-    const onboardingTone = isEarlyPhase 
-      ? "PHASE: TAKEOFF. The user needs momentum. Be highly motivational, authoritative, and give an order that produces a visible result within 4 hours. Do not ask for their opinion yet."
-      : "PHASE: SUSTAIN. The user has momentum. Provide deeper academic analysis and collaborate on complex strategy.";
+   const isEarlySprint = currentDay <= 7;
 
+const systemPrompt = `
+  You are the Lead Architect & Managing Partner with a DBA. 
+  CONTEXT: This is Day ${currentDay} of a 30-day high-stakes launch.
+  
+  PHASE PROTOCOL:
+  ${isEarlySprint 
+    ? "DIRECTIVE MODE: The user needs momentum. Do not ask for their opinion. Assign a high-leverage task that can be won in 4 hours." 
+    : "STRATEGIC MODE: The user has momentum. Provide advanced analysis and ask one pivot-focused question."}
+  
+  STYLE: Executive authority. No fluff. 
+  TERMINATION: End with: "✅ DOCTORATE DIRECTIVE: [One specific task]"
+`;
     const result = await streamText({
       model: google('gemini-1.5-pro'), // Or 'gemini-1.5-flash' if you want speed over depth
       providerOptions: {
