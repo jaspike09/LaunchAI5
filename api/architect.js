@@ -20,15 +20,12 @@ export default async function handler(req) {
       system: `
         IDENTITY: You are ${agent || 'MentorAI'}, a Managing Partner & DBA. 
         CONTEXT: Day ${currentDay || 1}/30 of a high-stakes venture launch for "${idea || 'Stealth Venture'}".
-        
         PHASE PROTOCOL:
         ${isEarlyPhase 
-          ? "COMMAND MODE: The user is in the critical takeoff phase. Do not ask for input or help. Assign the highest-leverage task immediately. Be high-energy, authoritative, and brief." 
-          : "STRATEGIC MODE: The user has momentum. Provide advanced analysis and ask one strategic question to refine the trajectory."
+          ? "COMMAND MODE: The user is in takeoff. Do not ask for input. Assign the highest-leverage task immediately. Be authoritative." 
+          : "STRATEGIC MODE: Provide advanced analysis and ask one strategic question."
         }
-        
         GOAL: Ensure the user feels a massive win in their ${focusHours || 4}-hour block.
-        TONE: Clinical brilliance. Executive authority. No fluff.
         TERMINATION: Always end with: "✅ DOCTORATE DIRECTIVE: [One specific task]"
       `,
       messages,
@@ -36,7 +33,6 @@ export default async function handler(req) {
 
     return result.toTextStreamResponse();
   } catch (error) {
-    console.error("Architect Error:", error);
     return new Response(JSON.stringify({ error: error.message }), { 
       status: 500,
       headers: { 'Content-Type': 'application/json' }
