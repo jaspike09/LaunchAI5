@@ -5,30 +5,47 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Launch AI - GEMS Board</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .glass-panel { background: rgba(255,255,255,0.03); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.05); }
+        .score-red { text-shadow: 0 0 20px #ef4444; color: #ef4444; }
+        .score-green { text-shadow: 0 0 20px #22c55e; color: #22c55e; }
+    </style>
 </head>
-<body class="bg-slate-900 text-white font-sans">
-
-      
-         <div id="mainLogo" class="cursor-pointer select-none">
+<body class="bg-slate-900 text-white font-sans transition-all duration-500">
+    <header class="p-6">
+        <div id="mainLogo" class="cursor-pointer select-none inline-block">
             <h1 class="text-2xl font-bold tracking-tighter text-blue-500">LAUNCH<span class="text-white">AI</span></h1>
         </div>
-
-   
+    </header>
 
     <main class="max-w-4xl mx-auto mt-20 text-center px-4">
         <div id="inputContainer">
-            <h2 class="text-5xl font-extrabold mb-6">Validate your vision in seconds.</h2>
-            <textarea id="ideaInput" class="w-full bg-slate-800 p-4 rounded-xl mb-6 text-white" placeholder="Describe your idea..."></textarea>
+            <h2 class="text-5xl font-extrabold mb-6 tracking-tight">Validate your vision in seconds.</h2>
+            <p class="text-slate-400 mb-8">Enter your idea and email to receive a brutal 2026 market audit.</p>
             
-            <button id="validateBtn" class="bg-green-600 px-8 py-4 rounded-full font-bold mb-10">Validate Vision</button>
-        </div
-        <div id="resultsArea" class="hidden">
-            <h2 class="text-3xl font-bold mb-4">Score: <span id="scoreText">0</span>%</h2>
-            <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                <button id="founderBtn" class="bg-blue-600 px-8 py-4 rounded-full font-bold transition">
+            <textarea id="ideaInput" class="w-full bg-slate-800 p-6 rounded-2xl mb-4 text-white border border-white/5 focus:border-blue-500 outline-none transition" rows="4" placeholder="Describe your idea (e.g., A luxury dog washing service in Austin)..."></textarea>
+            
+            <input id="userEmail" type="email" placeholder="Enter your email to see the score" class="w-full bg-slate-800 p-4 rounded-xl mb-6 text-white border border-white/5 focus:border-blue-500 outline-none transition">
+            
+            <button id="validateBtn" class="w-full bg-green-600 hover:bg-green-500 px-8 py-5 rounded-full font-black text-lg shadow-lg shadow-green-900/20 transition-all transform active:scale-95">
+                VALIDATE VISION
+            </button>
+        </div>
+
+        <div id="resultsArea" class="hidden animate-in fade-in zoom-in duration-700">
+            <div class="glass-panel p-10 rounded-[3rem] border border-white/10 mb-10">
+                <h4 class="text-slate-500 text-[10px] font-bold uppercase tracking-[0.2em] mb-2">Venture Leverage Score</h4>
+                <h2 class="text-8xl font-black mb-4"><span id="scoreText">0</span>%</h2>
+                <p id="verdictText" class="text-slate-400 italic text-lg max-w-lg mx-auto leading-relaxed">"Analyzing the friction..."</p>
+            </div>
+
+            <div class="flex flex-col sm:flex-row gap-6 justify-center">
+                <button id="founderBtn" class="flex-1 bg-blue-600 hover:bg-blue-500 px-8 py-5 rounded-2xl font-bold transition-all shadow-xl shadow-blue-900/30">
+                    <span class="block text-xs opacity-70 uppercase mb-1">Founder Tier</span>
                     Start Launching ($39)
                 </button>
-                <button id="growthBtn" class="bg-slate-800 px-8 py-4 rounded-full font-bold transition">
+                <button id="growthBtn" class="flex-1 bg-slate-800 hover:bg-slate-700 px-8 py-5 rounded-2xl font-bold border border-white/10 transition-all shadow-xl">
+                    <span id="growthLabel" class="block text-xs opacity-70 uppercase mb-1">Architect Tier</span>
                     Go God Mode ($99)
                 </button>
             </div>
@@ -38,15 +55,19 @@
     <script>
         const elements = {
             ideaInput: document.getElementById('ideaInput'),
+            userEmail: document.getElementById('userEmail'),
             validateBtn: document.getElementById('validateBtn'),
+            inputContainer: document.getElementById('inputContainer'),
             resultsArea: document.getElementById('resultsArea'),
             scoreText: document.getElementById('scoreText'),
+            verdictText: document.getElementById('verdictText'),
             founderBtn: document.getElementById('founderBtn'),
             growthBtn: document.getElementById('growthBtn'),
+            growthLabel: document.getElementById('growthLabel'),
             mainLogo: document.getElementById('mainLogo')
         };
 
-        // 1. LOGO TRIGGER
+        // 1. GOD MODE TRIGGER (5 Clicks)
         let logoClicks = 0;
         let logoTimer;
         elements.mainLogo.addEventListener('click', () => {
@@ -56,18 +77,72 @@
 
             if (logoClicks === 5) {
                 localStorage.setItem('launchAI_GodMode', 'true');
-                alert("🚀 BYPASS ARMED: 'Go God Mode' will now skip Stripe.");
-                document.querySelector('#mainLogo span').style.color = '#22c55e'; 
+                elements.growthLabel.innerText = "GOD MODE ACTIVE";
+                elements.growthBtn.classList.replace('bg-slate-800', 'bg-amber-600');
+                document.querySelector('#mainLogo h1').style.color = '#fbbf24';
+                alert("🚀 GOD MODE ARMED: Architect Tier will bypass payment.");
                 logoClicks = 0;
             }
         });
 
-        // 2. REDIRECT LOGIC
+        // 2. THE REAL VALIDATION HANDLER
+        elements.validateBtn.addEventListener('click', async () => {
+            const idea = elements.ideaInput.value.trim();
+            const email = elements.userEmail.value.trim();
+            
+            if (!idea || !email) return alert("Vision and Email are required for audit.");
+
+            // UI State
+            elements.validateBtn.disabled = true;
+            elements.validateBtn.innerText = "BOARD IS REVIEWING...";
+
+            try {
+                // SAVE LOCALLY FOR DASHBOARD
+                localStorage.setItem('userBusinessIdea', idea);
+                localStorage.setItem('userEmail', email);
+
+                // ACTUAL API CALL TO YOUR BACKEND
+                const response = await fetch('/api/daily-idea', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ idea, email })
+                });
+
+                const data = await response.json();
+                const realScore = data.score || 48; // AI generates this now
+                const realVerdict = data.verdict || "A high-friction service business trading hours for dollars.";
+
+                // Switch Views
+                elements.inputContainer.classList.add('hidden');
+                elements.resultsArea.classList.remove('hidden');
+
+                // Animate to the real score
+                let count = 0;
+                let timer = setInterval(() => {
+                    count++;
+                    elements.scoreText.innerText = count;
+                    if (count >= realScore) {
+                        clearInterval(timer);
+                        elements.scoreText.classList.add(realScore < 55 ? 'score-red' : 'score-green');
+                        elements.verdictText.innerText = `"${realVerdict}"`;
+                    }
+                }, 25);
+
+            } catch (err) {
+                console.error(err);
+                alert("Uplink failed. The Board is offline.");
+                elements.validateBtn.disabled = false;
+                elements.validateBtn.innerText = "VALIDATE VISION";
+            }
+        });
+
+        // 3. TIER & STRIPE REDIRECT
         function handleAccess(tier) {
             const isGodMode = localStorage.getItem('launchAI_GodMode') === 'true';
 
             if (tier === 'Growth' && isGodMode) {
-                window.location.href = 'success.html';
+                // If God Mode is on, skip Stripe and go to signup
+                window.location.href = 'auth.html?mode=god';
             } else {
                 const links = {
                     'Founder': "https://buy.stripe.com/dRmbJ01vhgRL8Am8WD7Re03",
@@ -79,26 +154,6 @@
 
         elements.founderBtn.addEventListener('click', () => handleAccess('Founder'));
         elements.growthBtn.addEventListener('click', () => handleAccess('Growth'));
-
-        // 3. VALIDATION ANIMATION
-        // ... (Inside your script tag, replace the validation logic)
-elements.validateBtn.addEventListener('click', () => {
-    const idea = elements.ideaInput.value.trim();
-    if (!idea) return alert("Enter your vision first!");
-
-    // SAVE THE IDEA CONSISTENTLY
-    localStorage.setItem('userBusinessIdea', idea);
-
-    document.getElementById('inputContainer').classList.add('hidden');
-    elements.resultsArea.classList.remove('hidden');
-
-    let count = 0;
-    let timer = setInterval(() => {
-        count++;
-        elements.scoreText.innerText = count;
-        if(count >= 85) clearInterval(timer);
-    }, 30);
-});
     </script>
 </body>
 </html>
