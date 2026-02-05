@@ -3,14 +3,11 @@ import { generateText } from 'ai';
 import { createClient } from '@supabase/supabase-js';
 
 export default async function handler(req) {
-  const supabaseUrl = process.env.SUPABASE_URL;
-  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+// Inside your API files:
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY; // Matches your Vercel key!
 
-  if (!supabaseUrl || !supabaseKey) {
-    return new Response(JSON.stringify({ error: "Server Configuration Error" }), { status: 500 });
-  }
-
-  const supabase = createClient(supabaseUrl, supabaseKey);
+const supabase = createClient(supabaseUrl, supabaseKey);
 
   try {
     const { text } = await generateText({
