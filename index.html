@@ -87,54 +87,47 @@
 
         // 2. THE REAL VALIDATION HANDLER
         elements.validateBtn.addEventListener('click', async () => {
-            const idea = elements.ideaInput.value.trim();
-            const email = elements.userEmail.value.trim();
-            
-            if (!idea || !email) return alert("Vision and Email are required for audit.");
+    const idea = elements.ideaInput.value.trim();
+    const email = document.getElementById('userEmail').value.trim();
+    
+    if (!idea || !email) return alert("Email and Vision required for the Audit!");
 
-            // UI State
-            elements.validateBtn.disabled = true;
-            elements.validateBtn.innerText = "BOARD IS REVIEWING...";
+    // UI Feedback
+    elements.validateBtn.innerText = "Analyzing Market Gaps...";
+    elements.validateBtn.disabled = true;
 
-            try {
-                // SAVE LOCALLY FOR DASHBOARD
-                localStorage.setItem('userBusinessIdea', idea);
-                localStorage.setItem('userEmail', email);
-
-                // ACTUAL API CALL TO YOUR BACKEND
-                const response = await fetch('/api/daily-idea', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ idea, email })
-                });
-
-                const data = await response.json();
-                const realScore = data.score || 48; // AI generates this now
-                const realVerdict = data.verdict || "A high-friction service business trading hours for dollars.";
-
-                // Switch Views
-                elements.inputContainer.classList.add('hidden');
-                elements.resultsArea.classList.remove('hidden');
-
-                // Animate to the real score
-                let count = 0;
-                let timer = setInterval(() => {
-                    count++;
-                    elements.scoreText.innerText = count;
-                    if (count >= realScore) {
-                        clearInterval(timer);
-                        elements.scoreText.classList.add(realScore < 55 ? 'score-red' : 'score-green');
-                        elements.verdictText.innerText = `"${realVerdict}"`;
-                    }
-                }, 25);
-
-            } catch (err) {
-                console.error(err);
-                alert("Uplink failed. The Board is offline.");
-                elements.validateBtn.disabled = false;
-                elements.validateBtn.innerText = "VALIDATE VISION";
-            }
+    try {
+        // 1. Call your real AI backend
+        const response = await fetch('/api/daily-idea', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ idea, email })
         });
+        
+        const result = await response.json();
+        
+        // 2. Hide input, show results
+        document.getElementById('inputContainer').classList.add('hidden');
+        elements.resultsArea.classList.remove('hidden');
+
+        // 3. Animate to the REAL score returned by AI (not just 85)
+        let count = 0;
+        let targetScore = result.score || 48; // Default to 48 if AI fails
+        let timer = setInterval(() => {
+            count++;
+            elements.scoreText.innerText = count;
+            if(count >= targetScore) {
+                clearInterval(timer);
+                // Update color based on score
+                elements.scoreText.style.color = targetScore < 50 ? '#ef4444' : '#22c55e';
+            }
+        }, 20);
+
+    } catch (error) {
+        alert("Board connection failed. Try again.");
+        elements.validateBtn.disabled = false;
+    }
+});
 
         // 3. TIER & STRIPE REDIRECT
         function handleAccess(tier) {
