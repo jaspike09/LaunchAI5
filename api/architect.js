@@ -1,28 +1,22 @@
 import { google } from '@ai-sdk/google';
 import { streamText } from 'ai';
 
-// Force the Edge runtime for high-performance streaming and native req.json()
 export const config = {
   runtime: 'edge',
 };
 
 export default async function handler(req) {
-  // Validate request method
   if (req.method !== 'POST') {
     return new Response(JSON.stringify({ error: 'Method Not Allowed' }), { status: 405 });
   }
 
   try {
-    // Parse the incoming body
     const body = await req.json();
     const { messages, agent, idea, focusHours, currentDay } = body;
-
-    // Determine phase: Day 1-7 is high-intensity "Command Mode"
     const isEarlyPhase = (currentDay || 1) <= 7;
 
     const result = await streamText({
-      // FIXED: Corrected parentheses and used the stable 2026 Flash model
-      model: google('gemini-1.5-flash'), 
+      model: google('gemini-1.5-flash'),
       system: `
         IDENTITY: You are ${agent || 'MentorAI'}, a Managing Partner & DBA. 
         CONTEXT: Day ${currentDay || 1}/30 of a high-stakes venture launch for "${idea || 'Stealth Venture'}".
@@ -40,9 +34,7 @@ export default async function handler(req) {
       messages,
     });
 
-    // Return the response as a text stream
     return result.toTextStreamResponse();
-
   } catch (error) {
     console.error("Architect Error:", error);
     return new Response(JSON.stringify({ error: error.message }), { 
