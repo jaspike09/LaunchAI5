@@ -15,18 +15,15 @@ export default async function handler(req) {
     const { messages, agent, idea, focusHours, currentDay } = body;
     const isEarlyPhase = (currentDay || 1) <= 7;
 
+    // We are using the explicit provider instance to bypass the syntax error
+    const googleProvider = google('gemini-1.5-flash');
+
     const result = await streamText({
-      model: google('gemini-1.5-flash'),
+      model: googleProvider,
       system: `
         IDENTITY: You are ${agent || 'MentorAI'}, a Managing Partner & DBA. 
         CONTEXT: Day ${currentDay || 1}/30 for "${idea || 'Stealth Venture'}".
-        
-        PHASE PROTOCOL:
-        ${isEarlyPhase 
-          ? "COMMAND MODE: The user is in takeoff. Do not ask for input. Assign the highest-leverage task immediately." 
-          : "STRATEGIC MODE: Provide advanced analysis."
-        }
-        
+        PHASE: ${isEarlyPhase ? 'COMMAND MODE' : 'STRATEGIC MODE'}
         TERMINATION: Always end with: "✅ DOCTORATE DIRECTIVE: [One specific task]"
       `,
       messages,
@@ -34,9 +31,6 @@ export default async function handler(req) {
 
     return result.toTextStreamResponse();
   } catch (error) {
-    return new Response(JSON.stringify({ error: error.message }), { 
-      status: 500,
-      headers: { 'Content-Type': 'application/json' }
-    });
+    return new Response(JSON.stringify({ error: error.message }), { status: 500 });
   }
 }
