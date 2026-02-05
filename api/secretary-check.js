@@ -1,4 +1,9 @@
 export default async function handler(req) {
+  // Inside your API files:
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY; // Matches your Vercel key!
+
+const supabase = createClient(supabaseUrl, supabaseKey);
   // 1. Fetch all founders who haven't logged in today
   const { data: slackers } = await supabase
     .from('profiles')
