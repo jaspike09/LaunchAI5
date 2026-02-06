@@ -58,32 +58,36 @@
                 handleRedirect();
             }
         });
+async function handleRedirect() {
+    const { data: { user } } = await _supabase.auth.getUser();
+    
+    // Check if URL has ?mode=god
+    const urlParams = new URLSearchParams(window.location.search);
+    const isGodMode = urlParams.get('mode') === 'god';
 
-        async function handleRedirect() {
-            const { data: { user } } = await _supabase.auth.getUser();
-            
-            // Check if it's the first time
-            const { data: profile } = await _supabase.from('profiles').select('has_seen_briefing').eq('id', user.id).maybeSingle();
+    if (isGodMode) {
+        console.log("God Mode Bypass Active");
+        // Force the briefing flag in local storage just in case
+        localStorage.setItem('has_seen_briefing', 'true');
+    }
 
-            if (!profile || !profile.has_seen_briefing) {
-                // Save the idea from landing page if it exists
-                const savedIdea = localStorage.getItem('userBusinessIdea');
-                await _supabase.from('profiles').upsert({ 
-                    id: user.id, 
-                    email: user.email, 
-                    has_seen_briefing: true,
-                    business_idea: savedIdea 
-                });
-                window.location.href = 'success.html'; // MentorAI video
-            } else {
-                window.location.href = 'dashboard.html';
-            }
-        }
+    // Check DB profile
+    const { data: profile } = await _supabase.from('profiles').select('has_seen_briefing').eq('id', user.id).maybeSingle();
 
-        // GOOGLE SIGN IN
-        document.getElementById('googleBtn').addEventListener('click', async () => {
-            await _supabase.auth.signInWithOAuth({ provider: 'google' });
+    // Redirect logic: If God Mode OR first time user -> Success Video
+    if (isGodMode || !profile || !profile.has_seen_briefing) {
+        const savedIdea = localStorage.getItem('userBusinessIdea');
+        await _supabase.from('profiles').upsert({ 
+            id: user.id, 
+            email: user.email, 
+            has_seen_briefing: true,
+            business_idea: savedIdea 
         });
+        window.location.href = 'success.html';
+    } else {
+        window.location.href = 'dashboard.html';
+    }
+}
     </script>
 </body>
 </html>
