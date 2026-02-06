@@ -166,7 +166,11 @@ if (progress) {
                 fetchDailyIdea();
             } catch (err) { console.error("Critical HQ Failure:", err); }
         }
-        
+        const assignment = profile.last_audit_score < 50 
+    ? "Pivot your business model to lower overhead." 
+    : "Begin your Market Deep Dive with MarketingAI.";
+
+updateSubtitles(`Your first priority: ${assignment}`, 5000);
         async function handleBriefing(profile, user) {
     const overlay = document.getElementById('briefingOverlay');
     const video = document.getElementById('demoVideo');
