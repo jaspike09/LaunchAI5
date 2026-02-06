@@ -267,15 +267,111 @@ function openChat(agent) {
 }
 
 async function sendMessage() {
+   async function sendMessage() {
     const input = document.getElementById('chatInput');
     const chatBox = document.getElementById('chatBox');
     const text = input.value.trim();
     if (!text) return;
 
-    chatBox.innerHTML += `<div class="flex justify-end mb-4"><div class="bg-blue-600/20 p-4 rounded-2xl border border-blue-500/30 max-w-[85%] text-sm">${text}</div></div>`;
+    // 1. UI: User Message
+    chatBox.innerHTML += `
+        <div class="flex justify-end mb-4">
+            <div class="bg-blue-600/20 p-4 rounded-2xl border border-blue-500/30 max-w-[85%] text-sm">
+                ${text}
+            </div>
+        </div>`;
     input.value = "";
     
+    // 2. UI: AI Thinking State
     const aiId = 'ai-' + Date.now();
+    chatBox.innerHTML += `
+        <div class="flex justify-start mb-4">
+            <div class="glass-panel p-4 rounded-2xl border border-white/10 max-w-[85%] text-sm">
+                <b class="text-blue-400 block mb-1 text-[10px] uppercase tracking-widest">${currentAgent}</b>
+                <span id="${aiId}" class="leading-relaxed">...</span>
+            </div>
+        </div>`;
+    chatBox.scrollTop = chatBox.scrollHeight;
+
+    try {
+        const response = await fetch('/api/architect', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                messages: [{ role: 'user', content: text }],
+                agent: currentAgent,
+                idea: currentProfile?.business_idea || localStorage.getItem('userBusinessIdea'),
+                capital: currentProfile?.capital || "0",
+                hours: currentProfile?.focus_hours || "4"
+            })
+        });
+
+        if (!response.ok) throw new Error('Uplink Failure');
+
+        const reader = response.body.getReader();
+        const textTarget = document.getElementById(aiId);
+        textTarget.innerText = ""; // Clear the "..."
+
+        const decoder = new TextDecoder();
+        
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+
+            const chunk = decoder.decode(value, { stream: true });
+            
+            // This logic cleans the OpenAI stream format if you use the direct fetch method
+            const lines = chunk.split('\n');
+            for (const line of lines) {
+                if (line.trim().startsWith('data: ')) {
+                    const data = line.trim().substring(6);
+                    if (data === '[DONE]') break;
+                    try {
+                        const json = JSON.parse(data);
+                        const content = json.choices[0]?.delta?.content || "";
+                        textTarget.innerText += content;
+                    } catch (e) { /* skip partial JSON chunks */ }
+                } else if (!line.trim().startsWith('data:')) {
+                    // Fallback for non-SSE formatted streams
+                    textTarget.innerText += line;
+                }
+            }
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+    } catch (e) { 
+        console.error(e);
+        document.getElementById(aiId).innerText = "Uplink Terminated. Verify API Key and Route."; 
+    }
+}
+
+async function logout() {
+    await _supabase.auth.signOut();
+    window.location.href = 'index.html';
+}
+
+// Global UI Handlers
+function showSection(id) {
+    document.getElementById('overview').classList.toggle('hidden', id !== 'overview');
+    document.getElementById('chatArea').classList.toggle('hidden', id !== 'chatArea');
+    document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active-link'));
+    if(id === 'overview') document.getElementById('link-overview').classList.add('active-link');
+}
+
+function openChat(agent) {
+    currentAgent = agent;
+    showSection('chatArea');
+    document.getElementById('sectionTitle').innerText = agent;
+    // Clear previous chat or load history here if needed
+    document.getElementById('chatBox').innerHTML = ''; 
+    document.getElementById('chatBox').innerHTML += `
+        <div class="text-[10px] text-center text-slate-500 uppercase tracking-[0.2em] my-4">
+            Secure Encrypted Line Established: ${agent}
+        </div>`;
+}
+
+// Initialize on load
+init();
+
     chatBox.innerHTML += `<div class="flex justify-start mb-4"><div class="glass-panel p-4 rounded-2xl border border-white/10 max-w-[85%] text-sm">
         <b class="text-blue-400 block mb-1 text-[10px] uppercase tracking-widest">${currentAgent}</b>
         <span id="${aiId}">...</span>
