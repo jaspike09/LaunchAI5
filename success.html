@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mission Briefing | LaunchAI</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -42,14 +42,13 @@
             </div>
 
             <video id="mentorVideo" class="w-full h-full object-cover">
-                <source src="MentorAI vid.mp4" type="video/mp4">
-                Your browser does not support the video tag.
+                <source src="mentor.mp4" type="video/mp4">
             </video>
         </div>
 
         <p class="text-slate-400 mb-8">
             Analyzing mission parameters for: <br>
-            <span id="currentIdea" class="text-blue-400 font-semibold italic text-lg">"Loading Vision..."</span>
+            <span id="currentIdea" class="text-blue-400 font-semibold italic text-lg">"Detecting Vision..."</span>
         </p>
 
         <button id="dashboardBtn" class="opacity-0 translate-y-4 pointer-events-none inline-block bg-blue-600 px-10 py-4 rounded-2xl font-bold hover:bg-blue-500 transition-all duration-700 shadow-lg shadow-blue-600/30">
@@ -57,12 +56,9 @@
         </button>
     </div>
 
-    <div class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-blue-500/10 rounded-full blur-[120px] -z-10"></div>
-
     <script>
-        // --- 1. CONFIGURATION ---
         const SUPABASE_URL = 'https://yvgzyymjymrgjhhthgtj.supabase.co';
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl2Z3p5eW1qeW1yZ2poaHRoZ3RqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk5OTc1MzIsImV4cCI6MjA4NTU3MzUzMn0.814FVde267XILaw-VA76Yuk6Y6BVQpCr_5fAF2KtBFw';
+        const SUPABASE_KEY = 'YOUR_ANON_PUBLIC_KEY'; // MUST REPLACE THIS
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         const video = document.getElementById('mentorVideo');
@@ -71,53 +67,38 @@
         const dashBtn = document.getElementById('dashboardBtn');
         const ideaDisplay = document.getElementById('currentIdea');
 
-        // --- 2. DATA SYNC (The "How") ---
         async function syncVision() {
-            // Get idea from index.html (ensure keys match)
             const savedIdea = localStorage.getItem('userBusinessIdea');
             if (savedIdea) {
                 ideaDisplay.innerText = `"${savedIdea}"`;
             }
 
-            // Sync to Supabase Profiles
-            const { data: { user } } = await _supabase.auth.getUser();
-            if (user && savedIdea) {
+            // FIX 3: Robust Auth Check
+            const { data: { session } } = await _supabase.auth.getSession();
+            if (session?.user && savedIdea) {
                 await _supabase.from('profiles').update({ 
                     business_idea: savedIdea,
-                    is_paid: true 
-                }).eq('id', user.id);
-                console.log("Vision synced to cloud.");
+                    has_seen_briefing: true // Crucial for your auth redirect logic
+                }).eq('id', session.user.id);
             }
         }
 
-        // --- 3. INTERACTION LOGIC ---
-        startBtn.addEventListener('click', async () => {
-            // Initialization
+        startBtn.addEventListener('click', () => {
             playGate.style.opacity = '0';
             setTimeout(() => playGate.classList.add('hidden'), 500);
-            
-            video.muted = false;
             video.play();
             
-            // Show "Enter" button after 5 seconds of the video
+            // Show button after 5 seconds
             setTimeout(() => {
                 dashBtn.classList.remove('opacity-0', 'translate-y-4', 'pointer-events-none');
                 dashBtn.classList.add('pulse-btn');
             }, 5000);
         });
 
-        // Final Redirect
         dashBtn.addEventListener('click', () => {
             window.location.href = 'dashboard.html';
         });
 
-        // If video ends, change button style to "Ready"
-        video.onended = () => {
-            dashBtn.innerHTML = 'Mission Control Ready <i class="fa-solid fa-rocket ml-2"></i>';
-            dashBtn.classList.replace('bg-blue-600', 'bg-green-600');
-        };
-
-        // Run sync on load
         syncVision();
     </script>
 </body>
