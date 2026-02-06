@@ -100,6 +100,16 @@
         let currentAgent = "MentorAI";
 
         async function init() {
+            // Inside your init() function in dashboard.html
+const { data: progress } = await _supabase
+    .from('launch_progress')
+    .select('*')
+    .eq('user_id', session.user.id);
+
+if (progress) {
+    const completedSteps = progress.filter(p => p.status === 'completed').length;
+    document.getElementById('dayBadge').innerText = `${completedSteps} / 5 Milestones Reached`;
+}
             try {
                 const { data: { session } } = await _supabase.auth.getSession();
                 if (!session) { window.location.href = 'auth.html'; return; }
