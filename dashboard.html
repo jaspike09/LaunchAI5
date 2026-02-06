@@ -1,174 +1,179 @@
-<script>
-const SUPABASE_URL = 'https://yvgzyymjymrgjhhthgtj.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl2Z3p5eW1qeW1yZ2poaHRoZ3RqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk5OTc1MzIsImV4cCI6MjA4NTU3MzUzMn0.814FVde267XILaw-VA76Yuk6Y6BVQpCr_5fAF2KtBFw'; 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LaunchAI_4 | Command Center</title>
+    <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .sidebar-btn:hover { background: rgba(59, 130, 246, 0.1); color: #60a5fa; }
+        .active-gem { background: rgba(59, 130, 246, 0.2); border-right: 4px solid #3b82f6; color: #60a5fa; }
+        .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.05); }
+        .locked { opacity: 0.5; cursor: not-allowed; filter: grayscale(1); }
+        .workaholic-pulse { animation: pulse 2s infinite; }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+    </style>
+</head>
+<body class="bg-slate-950 text-white font-sans flex h-screen overflow-hidden">
 
-const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-let currentProfile = null;
-let currentAgent = "MentorAI";
-
-// 1. INITIALIZE HQ
-async function init() {
-    try {
-        const { data: { session }, error: authError } = await _supabase.auth.getSession();
-        if (!session || authError) {
-            window.location.href = 'auth.html';
-            return;
-        }
-
-        document.getElementById('userNameDisplay').innerText = session.user.email.split('@')[0];
-
-        const { data: profile } = await _supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', session.user.id)
-            .maybeSingle();
-
-        if (profile) {
-            currentProfile = profile;
-            document.getElementById('ideaDisplay').innerText = `"${profile.business_idea}"`;
-            document.getElementById('auditScoreDisplay').innerText = profile.last_audit_score || "--";
-            
-            const scoreEl = document.getElementById('auditScoreDisplay');
-            scoreEl.classList.remove('score-glow-red', 'score-glow-green');
-            scoreEl.classList.add(profile.last_audit_score < 55 ? 'score-glow-red' : 'score-glow-green');
-
-            if (!profile.has_seen_briefing) {
-                handleBriefing(profile, session.user);
-            }
-        }
-
-        updateProgressUI(session.user.id);
-        fetchDailyIdea();
-
-    } catch (err) {
-        console.error("Critical HQ Failure:", err);
-    }
-}
-
-// 2. MENTOR BRIEFING LOGIC
-async function handleBriefing(profile, user) {
-    const overlay = document.getElementById('briefingOverlay');
-    const video = document.getElementById('demoVideo');
-    const closeBtn = document.getElementById('closeBriefing');
-
-    overlay.classList.remove('hidden');
-    
-    const assignmentText = (profile.last_audit_score || 0) < 50 
-        ? "Pivot your business model to lower overhead." 
-        : "Begin your Market Deep Dive with MarketingAI.";
-
-    setTimeout(() => {
-        video.play().catch(e => console.warn("Autoplay blocked"));
-        updateSubtitles("To speak with the GEMS Board members, there are a couple things we must complete!", 4000);
+    <aside class="w-72 border-r border-white/5 flex flex-col bg-slate-950">
+        <div class="p-8 text-2xl font-black tracking-tighter">Launch<span class="text-blue-500">AI_4</span></div>
         
-        setTimeout(() => {
-            updateSubtitles(`Since your vision is focused on "${profile.business_idea || 'this venture'}"...`, 4000);
+        <nav class="flex-1 space-y-1 px-4">
+            <div class="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-4 mb-4">The GEMS Board</div>
             
-            setTimeout(() => {
-                updateSubtitles(`Your first priority: ${assignmentText}`, 5000);
-            }, 4500);
-        }, 4500);
-    }, 1000);
+            <button onclick="selectAgent('SecretaryAI')" class="w-full sidebar-btn flex items-center px-4 py-3 rounded-xl transition text-left mb-1">
+                <i class="fa-solid fa-shield-halved mr-3 text-slate-400"></i> SecretaryAI <span class="ml-auto text-[8px] bg-green-500/20 text-green-400 px-2 rounded">ONLINE</span>
+            </button>
+            <button onclick="selectAgent('MentorAI')" class="w-full sidebar-btn flex items-center px-4 py-3 rounded-xl transition text-left mb-1">
+                <i class="fa-solid fa-user-tie mr-3 text-blue-400"></i> MentorAI
+            </button>
 
-    video.onended = () => {
-        closeBtn.classList.remove('hidden');
-        updateSubtitles("Dismiss this briefing to begin your assignments.", 3000);
-    };
+            <div class="pt-4 mt-4 border-t border-white/5">
+                <button onclick="selectAgent('MarketingAI')" id="MarketingAI-btn" class="gem-lock w-full sidebar-btn flex items-center px-4 py-3 rounded-xl transition text-left">
+                    <i class="fa-solid fa-bullhorn mr-3 text-orange-400"></i> MarketingAI <i class="fa-solid fa-lock ml-auto text-[10px] lock-icon hidden"></i>
+                </button>
+                <button onclick="selectAgent('LawyerAI')" id="LawyerAI-btn" class="gem-lock w-full sidebar-btn flex items-center px-4 py-3 rounded-xl transition text-left">
+                    <i class="fa-solid fa-gavel mr-3 text-red-400"></i> LawyerAI <i class="fa-solid fa-lock ml-auto text-[10px] lock-icon hidden"></i>
+                </button>
+                <button onclick="selectAgent('AccountantAI')" id="AccountantAI-btn" class="gem-lock w-full sidebar-btn flex items-center px-4 py-3 rounded-xl transition text-left">
+                    <i class="fa-solid fa-calculator mr-3 text-green-400"></i> AccountantAI <i class="fa-solid fa-lock ml-auto text-[10px] lock-icon hidden"></i>
+                </button>
+                <button onclick="selectAgent('SocialMediaAI')" id="SocialMediaAI-btn" class="gem-lock w-full sidebar-btn flex items-center px-4 py-3 rounded-xl transition text-left">
+                    <i class="fa-solid fa-hashtag mr-3 text-purple-400"></i> SocialMediaAI <i class="fa-solid fa-lock ml-auto text-[10px] lock-icon hidden"></i>
+                </button>
+            </div>
+        </nav>
 
-    closeBtn.onclick = async () => {
-        overlay.classList.add('opacity-0');
-        await _supabase.from('profiles').update({ has_seen_briefing: true }).eq('id', user.id);
-        setTimeout(() => overlay.remove(), 500);
-    };
-}
+        <div class="p-6 border-t border-white/5">
+            <div id="tierBadge" class="text-[10px] font-bold text-blue-500 uppercase tracking-widest mb-4">Founder Tier</div>
+            <button id="upgradeBtn" class="w-full bg-blue-600 py-3 rounded-xl text-xs font-bold hover:bg-blue-500 transition">UPGRADE TO ARCHITECT</button>
+        </div>
+    </aside>
 
-function updateSubtitles(text, duration) {
-    const el = document.getElementById('mentorSubtitles');
-    if (!el) return;
-    el.innerText = text;
-    el.classList.add('animate-pulse');
-    setTimeout(() => {
-        if(el.innerText === text) el.innerText = "";
-        el.classList.remove('animate-pulse');
-    }, duration);
-}
+    <main class="flex-1 flex flex-col bg-slate-900/50">
+        <header class="h-16 border-b border-white/5 flex items-center justify-between px-8 bg-slate-950/50">
+            <div class="flex items-center gap-4">
+                <h2 id="currentAgentTitle" class="text-sm font-bold uppercase tracking-widest">MentorAI</h2>
+                <div class="flex items-center text-[10px] text-green-400 font-bold uppercase">
+                    <span class="w-2 h-2 bg-green-500 rounded-full mr-2 workaholic-pulse"></span> Workaholic Mode Active
+                </div>
+            </div>
+            <div id="greeting" class="text-xs text-slate-400 italic">"We've been running simulations while you slept..."</div>
+        </header>
 
-// 3. CHAT & GEMS BOARD LOGIC
-async function sendMessage() {
-    const input = document.getElementById('chatInput');
-    const chatBox = document.getElementById('chatBox');
-    const text = input.value.trim();
-    if (!text) return;
+        <div id="chatBox" class="flex-1 overflow-y-auto p-8 space-y-6">
+            </div>
 
-    chatBox.innerHTML += `<div class="flex justify-end mb-4"><div class="bg-blue-600/20 p-4 rounded-2xl border border-blue-500/30 max-w-[85%] text-sm">${text}</div></div>`;
-    input.value = "";
-    
-    const aiId = 'ai-' + Date.now();
-    chatBox.innerHTML += `<div class="flex justify-start mb-4"><div class="glass-panel p-4 rounded-2xl border border-white/10 max-w-[85%] text-sm"><b class="text-blue-400 block mb-1 text-[10px] uppercase tracking-widest">${currentAgent}</b><span id="${aiId}">...</span></div></div>`;
-    chatBox.scrollTop = chatBox.scrollHeight;
+        <div class="p-6 bg-slate-950/50 border-t border-white/5">
+            <div class="max-w-4xl mx-auto flex gap-4">
+                <input type="text" id="userInput" placeholder="Command the board..." 
+                       class="flex-1 bg-white/5 border border-white/10 rounded-2xl px-6 py-4 outline-none focus:border-blue-500 transition">
+                <button onclick="sendToBoard()" class="bg-blue-600 px-8 rounded-2xl font-bold hover:bg-blue-500 transition active:scale-95">SEND</button>
+            </div>
+        </div>
+    </main>
 
-    try {
-        const response = await fetch('/api/architect', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-                messages: [{ role: 'user', content: text }],
-                agent: currentAgent,
-                idea: currentProfile?.business_idea,
-                capital: currentProfile?.capital || "0",
-                hours: currentProfile?.focus_hours || "4"
-            })
-        });
+    <script>
+        const _supabase = supabase.createClient('YOUR_URL', 'YOUR_KEY');
+        let userTier = "Founder"; // This will be pulled from Supabase
+        let selectedAgent = "MentorAI";
 
-        const reader = response.body.getReader();
-        const decoder = new TextDecoder();
-        const textTarget = document.getElementById(aiId);
-        textTarget.innerText = "";
+        async function init() {
+            // 1. Get Session & Profile
+            const { data: { user } } = await _supabase.auth.getUser();
+            if (!user) window.location.href = "index.html";
 
-        while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
+            const { data: profile } = await _supabase.from('profiles').select('*').eq('id', user.id).single();
+            userTier = profile.tier || "Founder";
             
-            const chunk = decoder.decode(value);
-            const lines = chunk.split('\n');
-            
-            for (const line of lines) {
-                if (line.startsWith('data: ')) {
-                    const dataStr = line.replace('data: ', '');
-                    if (dataStr === '[DONE]') break;
-                    try {
-                        const json = JSON.parse(dataStr);
-                        textTarget.innerText += json.choices[0]?.delta?.content || "";
-                    } catch (e) {}
-                } else if (line.trim().length > 0 && !line.startsWith('data:')) {
-                    textTarget.innerText += line;
-                }
+            // 2. Lock Specialists if not Architect
+            if (userTier === "Founder") {
+                document.querySelectorAll('.gem-lock').forEach(btn => {
+                    btn.classList.add('locked');
+                    btn.querySelector('.lock-icon').classList.remove('hidden');
+                });
+                document.getElementById('tierBadge').innerText = "Founder Tier";
+            } else {
+                document.getElementById('upgradeBtn').classList.add('hidden');
+                document.getElementById('tierBadge').innerText = "Architect Tier";
             }
-            chatBox.scrollTop = chatBox.scrollHeight;
+
+            // 3. Workaholic Greeting
+            addMessage("SecretaryAI", "Welcome back. We've analyzed 14 market competitors and drafted 3 legal safeguards while you were away. Which specialist do you need?");
         }
-    } catch (e) { document.getElementById(aiId).innerText = "Uplink Terminated."; }
-}
 
-// 4. NAVIGATION
-function showSection(id) {
-    document.getElementById('overview').classList.toggle('hidden', id !== 'overview');
-    document.getElementById('chatArea').classList.toggle('hidden', id !== 'chatArea');
-    document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active-link'));
-    if(id === 'overview') document.getElementById('link-overview').classList.add('active-link');
-}
+        function selectAgent(agent) {
+            if (userTier === "Founder" && ['LawyerAI', 'AccountantAI', 'SocialMediaAI', 'MarketingAI'].includes(agent)) {
+                return alert("Upgrade to Architect Tier to unlock this specialist.");
+            }
+            selectedAgent = agent;
+            document.getElementById('currentAgentTitle').innerText = agent;
+            document.querySelectorAll('.sidebar-btn').forEach(b => b.classList.remove('active-gem'));
+            event.currentTarget.classList.add('active-gem');
+        }
 
-function openChat(agent) {
-    currentAgent = agent;
-    showSection('chatArea');
-    document.getElementById('sectionTitle').innerText = agent;
-    document.getElementById('chatBox').innerHTML = `<div class="text-[10px] text-center text-slate-500 uppercase tracking-[0.2em] my-4">Secure Line: ${agent}</div>`;
-}
+        async function sendToBoard() {
+            const input = document.getElementById('userInput');
+            const message = input.value.trim();
+            if (!message) return;
 
-async function logout() {
-    await _supabase.auth.signOut();
-    window.location.href = 'index.html';
-}
+            addMessage("You", message);
+            input.value = "";
 
-init();
-</script>
+            const aiId = addMessage(selectedAgent, "...");
+
+            const response = await fetch('/api/architect', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    messages: [{ role: 'user', content: message }],
+                    agent: selectedAgent,
+                    idea: localStorage.getItem('userIdea'),
+                    tier: userTier
+                })
+            });
+
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+            const target = document.getElementById(aiId);
+            target.innerText = "";
+
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+                
+                const chunk = decoder.decode(value);
+                // Simple cleaning of the SSE data format
+                const lines = chunk.split('\n');
+                lines.forEach(line => {
+                    if (line.startsWith('data: ')) {
+                        try {
+                            const data = JSON.parse(line.substring(6));
+                            target.innerText += data.choices[0].delta.content || "";
+                        } catch (e) {}
+                    }
+                });
+            }
+        }
+
+        function addMessage(sender, text) {
+            const id = 'msg-' + Date.now();
+            const isAI = sender !== "You";
+            document.getElementById('chatBox').innerHTML += `
+                <div class="flex ${isAI ? 'justify-start' : 'justify-end'} animate-in fade-in slide-in-from-bottom-2">
+                    <div class="${isAI ? 'glass' : 'bg-blue-600'} p-5 rounded-2xl max-w-2xl border border-white/5 shadow-xl">
+                        <div class="text-[10px] font-black uppercase tracking-widest ${isAI ? 'text-blue-400' : 'text-blue-100'} mb-2">${sender}</div>
+                        <div id="${id}" class="text-sm leading-relaxed">${text}</div>
+                    </div>
+                </div>`;
+            document.getElementById('chatBox').scrollTop = document.getElementById('chatBox').scrollHeight;
+            return id;
+        }
+
+        init();
+    </script>
+</body>
+</html>
