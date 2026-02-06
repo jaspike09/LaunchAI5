@@ -1,23 +1,12 @@
 {
-  "name": "launch-ai",
+  "name": "launch-ai-4",
   "version": "1.0.0",
-  "type": "module",
-  "dependencies": {
-    "@ai-sdk/google": "^3.0.20",
-    "@google/generative-ai": "^0.24.1",
-    "@supabase/supabase-js": "^2.39.7",
-    "ai": "^6.0.69"
-  },
-  "devDependencies": {
-    "tailwindcss": "^4.1.18"
-  },
+  "description": "Zero-dependency AI GEMS Board",
+  "main": "index.html",
   "scripts": {
-    "build": "npx @tailwindcss/cli -i ./src/input.css -o ./dist/output.css",
-    "dev": "npx @tailwindcss/cli -i ./src/input.css -o ./dist/output.css --watch"
+    "build": "npx tailwindcss -i ./src/input.css -o ./dist/output.css"
   },
-  "main": "index.js",
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": ""
+  "dependencies": {
+    "@supabase/supabase-js": "^2.39.0"
+  }
 }
