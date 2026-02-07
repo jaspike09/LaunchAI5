@@ -1,1 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"><title>GEMS Command</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body { background: #020617; color: white; }
+        .glass { background: rgba(255,255,255,0.02); backdrop-filter: blur(10px); }
+        .paywall-modal { display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); z-index:1000; }
+    </style>
+</head>
+<body class="flex h-screen">
+
+    <aside class="w-64 border-r border-white/5 p-6 flex flex-col glass">
+        <div class="font-black text-xl mb-10 italic">LAUNCHAI_4</div>
+        <nav class="space-y-4 flex-1">
+            <button onclick="setAgent('SecretaryAI')" class="w-full text-left p-3 rounded-lg hover:bg-white/5 text-xs font-bold"><i class="fa-solid fa-shield-halved mr-2 text-blue-500"></i> SecretaryAI</button>
+            <button onclick="setAgent('MentorAI')" class="w-full text-left p-3 rounded-lg hover:bg-white/5 text-xs font-bold"><i class="fa-solid fa-user-tie mr-2 text-blue-500"></i> MentorAI</button>
+            <div class="h-px bg-white/10 my-4"></div>
+            <button onclick="setAgent('LawyerAI')" class="w-full text-left p-3 text-xs opacity-50"><i class="fa-solid fa-lock mr-2"></i> LawyerAI</button>
+            <button onclick="setAgent('AccountantAI')" class="w-full text-left p-3 text-xs opacity-50"><i class="fa-solid fa-lock mr-2"></i> AccountantAI</button>
+        </nav>
+        <div class="p-4 bg-blue-600/10 border border-blue-500/20 rounded-xl">
+            <img src="Tier1.png" class="w-full rounded-lg mb-2 opacity-80">
+            <div class="text-[9px] font-bold text-center text-blue-400">FOUNDER TIER ACTIVE</div>
+        </div>
+    </aside>
+
+    <main class="flex-1 flex flex-col">
+        <header class="p-6 border-b border-white/5 flex justify-between items-center">
+            <span id="activeAgent" class="text-xs font-black uppercase tracking-widest text-blue-500">SecretaryAI</span>
+        </header>
+        <div id="chat" class="flex-1 p-8 overflow-y-auto space-y-4"></div>
+        <div class="p-6"><input id="msg" onkeypress="if(event.key==='Enter') send()" type="text" placeholder="Command the board..." class="w-full bg-white/5 border border-white/10 p-5 rounded-xl outline-none"></div>
+    </main>
+
+    <div id="paywall" class="paywall-modal glass p-8 rounded-3xl border border-blue-500/30 max-w-sm w-full text-center">
+        <img src="Tier2.png" class="w-full rounded-2xl mb-6">
+        <h3 class="font-black text-xl mb-2">Unlock Architect Tier</h3>
+        <p class="text-slate-400 text-xs mb-6">Access the full Board: Lawyers, Accountants, and Marketing Specialists.</p>
+        <button onclick="window.location.href='https://buy.stripe.com/YOUR_LINK'" class="w-full bg-blue-600 py-4 rounded-xl font-black mb-3">UPGRADE NOW</button>
+        <button onclick="closePaywall()" class="text-[10px] text-slate-500 uppercase font-bold">Maybe Later</button>
+    </div>
+
+    <script>
+        let agent = "SecretaryAI";
+        const chat = document.getElementById('chat');
+
+        window.onload = () => {
+            const idea = localStorage.getItem('userIdea') || "Venture";
+            appendMsg("SecretaryAI", `Uplink Active. Briefing the board on "${idea}"...`);
+        }
+
+        function setAgent(a) {
+            if (['LawyerAI', 'AccountantAI'].includes(a)) {
+                document.getElementById('paywall').style.display = 'block';
+                return;
+            }
+            agent = a; document.getElementById('activeAgent').innerText = a;
+        }
+
+        function closePaywall() { document.getElementById('paywall').style.display = 'none'; }
+
+        async function send() {
+            const m = document.getElementById('msg').value; if(!m) return;
+            appendMsg("You", m); document.getElementById('msg').value = "";
+            let aiId = appendMsg(agent, "...");
+            
+            const res = await fetch('/api/architect', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ 
+                    messages: [{role: 'user', content: m}], 
+                    agent: agent, 
+                    idea: localStorage.getItem('userIdea'),
+                    tier: "Founder" 
+                })
+            });
+            
+            const reader = res.body.getReader();
+            const decoder = new TextDecoder();
+            let text = "";
+            while (true) {
+                const {done, value} = await reader.read();
+                if (done) break;
+                const chunk = decoder.decode(value).split('\n');
+                chunk.forEach(l => {
+                    if (l.startsWith('data: ')) {
+                        try {
+                            const data = JSON.parse(l.substring(6));
+                            text += data.choices[0].delta.content || "";
+                            document.getElementById(aiId).innerText = text;
+                        } catch(e) {}
+                    }
+                });
+            }
+        }
+
+        function appendMsg(s, t) {
+            const id = "m-" + Date.now();
+            chat.innerHTML += `<div class="flex ${s==='You'?'justify-end':'justify-start'}"><div class="max-w-md p-4 rounded-2xl ${s==='You'?'bg-blue-600':'bg-white/5'}"><div class="text-[8px] uppercase font-bold mb-1 opacity-50">${s}</div><div id="${id}" class="text-sm">${t}</div></div></div>`;
+            chat.scrollTop = chat.scrollHeight;
+            return id;
+        }
+    </script>
+</body>
+</html>
 
