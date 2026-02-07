@@ -1,10 +1,9 @@
 {
   "name": "launch-ai-4",
   "version": "1.0.0",
-  "description": "Zero-dependency AI GEMS Board",
-  "main": "index.html",
+  "private": true,
   "scripts": {
-    "build": "npx tailwindcss -i ./src/input.css -o ./dist/output.css"
+    "build": "echo 'No build step required'"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.39.0"
