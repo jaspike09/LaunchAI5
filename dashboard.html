@@ -1,179 +1,132 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LaunchAI_4 | Command Center</title>
-    <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <meta charset="UTF-8"><title>GEMS Command | LaunchAI_4</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        .sidebar-btn:hover { background: rgba(59, 130, 246, 0.1); color: #60a5fa; }
-        .active-gem { background: rgba(59, 130, 246, 0.2); border-right: 4px solid #3b82f6; color: #60a5fa; }
-        .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.05); }
-        .locked { opacity: 0.5; cursor: not-allowed; filter: grayscale(1); }
-        .workaholic-pulse { animation: pulse 2s infinite; }
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+        body { background: #020617; color: white; font-family: sans-serif; }
+        .glass { background: rgba(255,255,255,0.03); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.05); }
     </style>
 </head>
-<body class="bg-slate-950 text-white font-sans flex h-screen overflow-hidden">
+<body class="flex h-screen overflow-hidden">
 
-    <aside class="w-72 border-r border-white/5 flex flex-col bg-slate-950">
-        <div class="p-8 text-2xl font-black tracking-tighter">Launch<span class="text-blue-500">AI_4</span></div>
-        
-        <nav class="flex-1 space-y-1 px-4">
-            <div class="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-4 mb-4">The GEMS Board</div>
-            
-            <button onclick="selectAgent('SecretaryAI')" class="w-full sidebar-btn flex items-center px-4 py-3 rounded-xl transition text-left mb-1">
-                <i class="fa-solid fa-shield-halved mr-3 text-slate-400"></i> SecretaryAI <span class="ml-auto text-[8px] bg-green-500/20 text-green-400 px-2 rounded">ONLINE</span>
-            </button>
-            <button onclick="selectAgent('MentorAI')" class="w-full sidebar-btn flex items-center px-4 py-3 rounded-xl transition text-left mb-1">
-                <i class="fa-solid fa-user-tie mr-3 text-blue-400"></i> MentorAI
-            </button>
-
-            <div class="pt-4 mt-4 border-t border-white/5">
-                <button onclick="selectAgent('MarketingAI')" id="MarketingAI-btn" class="gem-lock w-full sidebar-btn flex items-center px-4 py-3 rounded-xl transition text-left">
-                    <i class="fa-solid fa-bullhorn mr-3 text-orange-400"></i> MarketingAI <i class="fa-solid fa-lock ml-auto text-[10px] lock-icon hidden"></i>
-                </button>
-                <button onclick="selectAgent('LawyerAI')" id="LawyerAI-btn" class="gem-lock w-full sidebar-btn flex items-center px-4 py-3 rounded-xl transition text-left">
-                    <i class="fa-solid fa-gavel mr-3 text-red-400"></i> LawyerAI <i class="fa-solid fa-lock ml-auto text-[10px] lock-icon hidden"></i>
-                </button>
-                <button onclick="selectAgent('AccountantAI')" id="AccountantAI-btn" class="gem-lock w-full sidebar-btn flex items-center px-4 py-3 rounded-xl transition text-left">
-                    <i class="fa-solid fa-calculator mr-3 text-green-400"></i> AccountantAI <i class="fa-solid fa-lock ml-auto text-[10px] lock-icon hidden"></i>
-                </button>
-                <button onclick="selectAgent('SocialMediaAI')" id="SocialMediaAI-btn" class="gem-lock w-full sidebar-btn flex items-center px-4 py-3 rounded-xl transition text-left">
-                    <i class="fa-solid fa-hashtag mr-3 text-purple-400"></i> SocialMediaAI <i class="fa-solid fa-lock ml-auto text-[10px] lock-icon hidden"></i>
-                </button>
+    <aside class="w-64 border-r border-white/5 p-6 flex flex-col glass">
+        <div class="font-black text-2xl mb-10 tracking-tighter italic">LAUNCH<span class="text-blue-500">AI_4</span></div>
+        <nav class="space-y-2 flex-1">
+            <button onclick="setAgent('SecretaryAI')" class="w-full text-left p-3 rounded-lg hover:bg-blue-600/20 text-xs font-bold transition-all uppercase tracking-widest"><i class="fa-solid fa-shield-halved mr-2 text-blue-500"></i> SecretaryAI</button>
+            <button onclick="setAgent('MentorAI')" class="w-full text-left p-3 rounded-lg hover:bg-blue-600/20 text-xs font-bold transition-all uppercase tracking-widest"><i class="fa-solid fa-user-tie mr-2 text-blue-500"></i> MentorAI</button>
+            <div class="pt-6 mt-6 border-t border-white/10 opacity-40">
+                <div class="text-[10px] mb-4 gray-400">ARCHITECT GEMS (LOCKED)</div>
+                <button class="w-full text-left p-3 text-xs cursor-not-allowed"><i class="fa-solid fa-lock mr-2"></i> AccountantAI</button>
+                <button class="w-full text-left p-3 text-xs cursor-not-allowed"><i class="fa-solid fa-lock mr-2"></i> LawyerAI</button>
             </div>
         </nav>
-
-        <div class="p-6 border-t border-white/5">
-            <div id="tierBadge" class="text-[10px] font-bold text-blue-500 uppercase tracking-widest mb-4">Founder Tier</div>
-            <button id="upgradeBtn" class="w-full bg-blue-600 py-3 rounded-xl text-xs font-bold hover:bg-blue-500 transition">UPGRADE TO ARCHITECT</button>
-        </div>
+        <div class="p-4 bg-blue-600/20 rounded-xl text-[10px] font-black text-blue-400 text-center border border-blue-500/30">FOUNDER TIER</div>
     </aside>
 
-    <main class="flex-1 flex flex-col bg-slate-900/50">
-        <header class="h-16 border-b border-white/5 flex items-center justify-between px-8 bg-slate-950/50">
-            <div class="flex items-center gap-4">
-                <h2 id="currentAgentTitle" class="text-sm font-bold uppercase tracking-widest">MentorAI</h2>
-                <div class="flex items-center text-[10px] text-green-400 font-bold uppercase">
-                    <span class="w-2 h-2 bg-green-500 rounded-full mr-2 workaholic-pulse"></span> Workaholic Mode Active
-                </div>
+    <main class="flex-1 flex flex-col relative">
+        <header class="p-6 border-b border-white/5 flex justify-between items-center glass">
+            <div>
+                <span id="activeAgent" class="text-xs font-black uppercase tracking-widest text-blue-400 italic">SecretaryAI</span>
+                <div class="text-[9px] text-slate-500 uppercase mt-1">Status: Monitoring Neural Streams</div>
             </div>
-            <div id="greeting" class="text-xs text-slate-400 italic">"We've been running simulations while you slept..."</div>
+            <div class="flex items-center gap-4">
+                <span class="text-[10px] text-green-500 font-bold bg-green-500/10 px-3 py-1 rounded-full"><i class="fa-solid fa-circle text-[6px] mr-1"></i> SYSTEM ONLINE</span>
+            </div>
         </header>
 
-        <div id="chatBox" class="flex-1 overflow-y-auto p-8 space-y-6">
+        <div id="chat" class="flex-1 p-8 overflow-y-auto space-y-6 scrollbar-hide">
             </div>
 
-        <div class="p-6 bg-slate-950/50 border-t border-white/5">
-            <div class="max-w-4xl mx-auto flex gap-4">
-                <input type="text" id="userInput" placeholder="Command the board..." 
-                       class="flex-1 bg-white/5 border border-white/10 rounded-2xl px-6 py-4 outline-none focus:border-blue-500 transition">
-                <button onclick="sendToBoard()" class="bg-blue-600 px-8 rounded-2xl font-bold hover:bg-blue-500 transition active:scale-95">SEND</button>
+        <div class="p-6 bg-slate-950/50 backdrop-blur-xl border-t border-white/5">
+            <div class="max-w-4xl mx-auto relative">
+                <input id="msg" onkeypress="if(event.key==='Enter') send()" type="text" placeholder="Command the board..." 
+                       class="w-full bg-white/5 border border-white/10 p-5 rounded-2xl outline-none focus:border-blue-500/50 transition-all text-sm pr-16">
+                <button onclick="send()" class="absolute right-4 top-3 text-blue-500 p-2 hover:scale-110 transition-transform">
+                    <i class="fa-solid fa-paper-plane"></i>
+                </button>
             </div>
         </div>
     </main>
 
     <script>
-        const _supabase = supabase.createClient('YOUR_URL', 'YOUR_KEY');
-        let userTier = "Founder"; // This will be pulled from Supabase
-        let selectedAgent = "MentorAI";
+        let agent = "SecretaryAI";
+        const chat = document.getElementById('chat');
+        
+        // REPLACED: Old 404-causing fetch removed.
+        window.onload = () => {
+            const userIdea = localStorage.getItem('userIdea') || "New Venture";
+            appendMsg("SecretaryAI", `Founder, welcome back. I've briefed the board on your idea: "${userIdea}". MentorAI is skeptical but ready. What is our first move?`);
+        };
 
-        async function init() {
-            // 1. Get Session & Profile
-            const { data: { user } } = await _supabase.auth.getUser();
-            if (!user) window.location.href = "index.html";
+        function setAgent(a) { 
+            agent = a; 
+            document.getElementById('activeAgent').innerText = a;
+            appendMsg("System", `Switched to ${a} uplink.`);
+        }
 
-            const { data: profile } = await _supabase.from('profiles').select('*').eq('id', user.id).single();
-            userTier = profile.tier || "Founder";
+        async function send() {
+            const m = document.getElementById('msg').value; 
+            if(!m) return;
+            appendMsg("You", m); 
+            document.getElementById('msg').value = "";
             
-            // 2. Lock Specialists if not Architect
-            if (userTier === "Founder") {
-                document.querySelectorAll('.gem-lock').forEach(btn => {
-                    btn.classList.add('locked');
-                    btn.querySelector('.lock-icon').classList.remove('hidden');
+            try {
+                const res = await fetch('/api/architect', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ 
+                        messages: [{role: 'user', content: m}], 
+                        agent: agent, 
+                        idea: localStorage.getItem('userIdea'),
+                        tier: "Founder" 
+                    })
                 });
-                document.getElementById('tierBadge').innerText = "Founder Tier";
-            } else {
-                document.getElementById('upgradeBtn').classList.add('hidden');
-                document.getElementById('tierBadge').innerText = "Architect Tier";
-            }
 
-            // 3. Workaholic Greeting
-            addMessage("SecretaryAI", "Welcome back. We've analyzed 14 market competitors and drafted 3 legal safeguards while you were away. Which specialist do you need?");
-        }
+                if (!res.ok) throw new Error("Connection failed.");
 
-        function selectAgent(agent) {
-            if (userTier === "Founder" && ['LawyerAI', 'AccountantAI', 'SocialMediaAI', 'MarketingAI'].includes(agent)) {
-                return alert("Upgrade to Architect Tier to unlock this specialist.");
-            }
-            selectedAgent = agent;
-            document.getElementById('currentAgentTitle').innerText = agent;
-            document.querySelectorAll('.sidebar-btn').forEach(b => b.classList.remove('active-gem'));
-            event.currentTarget.classList.add('active-gem');
-        }
+                const reader = res.body.getReader();
+                const decoder = new TextDecoder();
+                let aiMsgId = appendMsg(agent, "...");
+                let fullText = "";
 
-        async function sendToBoard() {
-            const input = document.getElementById('userInput');
-            const message = input.value.trim();
-            if (!message) return;
-
-            addMessage("You", message);
-            input.value = "";
-
-            const aiId = addMessage(selectedAgent, "...");
-
-            const response = await fetch('/api/architect', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    messages: [{ role: 'user', content: message }],
-                    agent: selectedAgent,
-                    idea: localStorage.getItem('userIdea'),
-                    tier: userTier
-                })
-            });
-
-            const reader = response.body.getReader();
-            const decoder = new TextDecoder();
-            const target = document.getElementById(aiId);
-            target.innerText = "";
-
-            while (true) {
-                const { done, value } = await reader.read();
-                if (done) break;
-                
-                const chunk = decoder.decode(value);
-                // Simple cleaning of the SSE data format
-                const lines = chunk.split('\n');
-                lines.forEach(line => {
-                    if (line.startsWith('data: ')) {
-                        try {
-                            const data = JSON.parse(line.substring(6));
-                            target.innerText += data.choices[0].delta.content || "";
-                        } catch (e) {}
-                    }
-                });
+                while (true) {
+                    const {done, value} = await reader.read();
+                    if (done) break;
+                    const chunk = decoder.decode(value);
+                    // Process text-stream logic
+                    const lines = chunk.split('\n');
+                    lines.forEach(line => {
+                        if (line.startsWith('data: ')) {
+                            try {
+                                const data = JSON.parse(line.substring(6));
+                                if (data.choices[0].delta.content) {
+                                    fullText += data.choices[0].delta.content;
+                                    document.getElementById(aiMsgId).innerText = fullText;
+                                }
+                            } catch (e) {}
+                        }
+                    });
+                }
+            } catch (err) {
+                appendMsg("System", "Error: Check OpenAI Key in Vercel Environment Variables.");
             }
         }
 
-        function addMessage(sender, text) {
-            const id = 'msg-' + Date.now();
-            const isAI = sender !== "You";
-            document.getElementById('chatBox').innerHTML += `
-                <div class="flex ${isAI ? 'justify-start' : 'justify-end'} animate-in fade-in slide-in-from-bottom-2">
-                    <div class="${isAI ? 'glass' : 'bg-blue-600'} p-5 rounded-2xl max-w-2xl border border-white/5 shadow-xl">
-                        <div class="text-[10px] font-black uppercase tracking-widest ${isAI ? 'text-blue-400' : 'text-blue-100'} mb-2">${sender}</div>
-                        <div id="${id}" class="text-sm leading-relaxed">${text}</div>
+        function appendMsg(s, t) {
+            const id = "msg-" + Date.now();
+            const isUser = s === 'You';
+            chat.innerHTML += `
+                <div class="flex ${isUser ? 'justify-end' : 'justify-start'}">
+                    <div class="max-w-2xl p-4 rounded-2xl ${isUser ? 'bg-blue-600' : 'glass'}">
+                        <div class="text-[9px] font-black uppercase mb-1 opacity-50">${s}</div>
+                        <div id="${id}" class="text-sm leading-relaxed">${t}</div>
                     </div>
                 </div>`;
-            document.getElementById('chatBox').scrollTop = document.getElementById('chatBox').scrollHeight;
+            chat.scrollTop = chat.scrollHeight;
             return id;
         }
-
-        init();
     </script>
 </body>
 </html>
