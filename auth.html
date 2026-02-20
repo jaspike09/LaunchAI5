@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LaunchAI | Secure Access</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); }
+    </style>
+</head>
+<body class="bg-slate-950 text-white min-h-screen flex items-center justify-center p-6">
+
+    <div class="max-w-md w-full glass p-10 rounded-3xl shadow-2xl">
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold tracking-tighter">Launch<span class="text-blue-500">AI</span></h1>
+            <p class="text-slate-400 mt-2" id="authTitle">Secure Executive Access</p>
+        </div>
+
+        <form id="authForm" class="space-y-4">
+            <div>
+                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-2 tracking-widest">Email Address</label>
+                <input type="email" id="email" required class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-blue-500 transition text-white">
+            </div>
+            <div>
+                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-2 tracking-widest">Password</label>
+                <input type="password" id="password" required class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-blue-500 transition text-white">
+            </div>
+            
+            <button type="submit" id="submitBtn" class="w-full bg-blue-600 hover:bg-blue-500 py-4 rounded-xl font-bold transition shadow-lg shadow-blue-500/20">
+                Continue to Briefing
+            </button>
+        </form>
+
+        <div class="mt-6 text-center">
+            <button id="toggleMode" class="text-sm text-slate-400 hover:text-white transition">
+                Need an account? <span class="text-blue-400">Sign Up</span>
+            </button>
+        </div>
+        
+        <p id="message" class="mt-4 text-center text-xs font-medium min-h-[1rem]"></p>
+    </div>
+
+    <script>
+        // --- 1. CONFIGURATION ---
+        const SUPABASE_URL = 'https://yvgzyymjymrgjhhthgtj.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl2Z3p5eW1qeW1yZ2poaHRoZ3RqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk5OTc1MzIsImV4cCI6MjA4NTU3MzUzMn0.814FVde267XILaw-VA76Yuk6Y6BVQpCr_5fAF2KtBFw';
+        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        const authForm = document.getElementById('authForm');
+        const emailInput = document.getElementById('email');
+        const passwordInput = document.getElementById('password');
+        const submitBtn = document.getElementById('submitBtn');
+        const toggleMode = document.getElementById('toggleMode');
+        const authTitle = document.getElementById('authTitle');
+        const messagePara = document.getElementById('message');
+
+        let isSignUp = false;
+
+        // --- 2. TOGGLE LOGIC ---
+        toggleMode.addEventListener('click', () => {
+            isSignUp = !isSignUp;
+            authTitle.innerText = isSignUp ? "Create your Architect account." : "Secure Executive Access";
+            submitBtn.innerText = isSignUp ? "Create Account" : "Continue to Briefing";
+            toggleMode.innerHTML = isSignUp ? "Already have access? <span class='text-blue-400'>Log In</span>" : "Need an account? <span class='text-blue-400'>Sign Up</span>";
+        });
+
+        // --- 3. AUTH LOGIC ---
+        authForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            messagePara.innerText = "Authenticating...";
+            messagePara.className = "mt-4 text-center text-xs font-medium text-blue-400";
+            
+            const email = emailInput.value;
+            const password = passwordInput.value;
+
+            try {
+                if (isSignUp) {
+                    const { data, error } = await _supabase.auth.signUp({ email, password });
+                    if (error) throw error;
+                    messagePara.innerText = "Check your email for the confirmation link!";
+                    messagePara.className = "mt-4 text-center text-xs font-medium text-green-400";
+                } else {
+                    const { data, error } = await _supabase.auth.signInWithPassword({ email, password });
+                    if (error) throw error;
+                    
+                    // SUCCESS: Redirect to the Briefing (Success Page)
+                    window.location.href = 'success.html';
+                }
+            } catch (err) {
+                messagePara.innerText = err.message;
+                messagePara.className = "mt-4 text-center text-xs font-medium text-red-400";
+            }
+        });
+    </script>
+</body>
+</html>
