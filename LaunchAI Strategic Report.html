@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LaunchAI: Business Launch Platform Analysis</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+
+    <!-- Chosen Palette: Warm Neutrals & Calm Harmony -->
+    <!-- Primary Background: #FAFAF9 (Stone 50) -->
+    <!-- Surface: #FFFFFF (White) -->
+    <!-- Primary Text: #1C1917 (Stone 900) -->
+    <!-- Secondary Text: #57534E (Stone 600) -->
+    <!-- Accent: #D97706 (Amber 600) - Used for call-to-actions and key data highlights -->
+    <!-- Support: #E7E5E4 (Stone 200) - Used for borders and subtle backgrounds -->
+
+
+    <!-- Application Structure Plan:
+         The application is designed as a "Strategic Dashboard" to present the business case for LaunchAI.
+         1. Sidebar Navigation: persistent access to key report sections (Executive, Market, Product, Financials).
+         2. Executive Summary: High-level KPI cards to immediately ground the user in the "Why".
+         3. Market Intelligence: Visualizations (Doughnut/Line) to prove the problem (failure rates) and opportunity (AI trend).
+         4. Product Architecture: An interactive "Tabbed Experience" to simulate the platform's workflow without needing screenshots.
+         5. Financial Model: A dynamic calculator (Sliders + Bar Chart) allowing users to test assumptions on revenue growth.
+         6. Roadmap: A vertical timeline showing the execution strategy.
+         This structure moves from "Context" -> "Solution" -> "Viability", a logical flow for investors or stakeholders.
+    -->
+
+
+    <!-- Visualization & Content Choices:
+         1. Startup Failure Rates: Doughnut Chart. Goal: Inform/Compare. chosen to visually isolate the "Market Need" segment (42%).
+         2. AI Adoption Trend: Line Chart. Goal: Change/Trend. Shows the rapid projected uptake of AI tools in SMBs.
+         3. Product Demo: Interactive JS Tabs. Goal: Inform/Engage. Allows user to click through the 4 steps of the app (Idea -> Plan -> Spy -> Launch) to understand functionality.
+         4. Revenue Projection: Bar Chart linked to Range Sliders. Goal: Inform/Change. Users can adjust "Subscribers" and "Price" to see immediate impact on ARR, making the business model tangible.
+    -->
+
+
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #FAFAF9;
+            color: #1C1917;
+        }
+
+
+        /* STRICT CHART CONTAINER STYLING */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px; /* Max width to prevent stretching */
+            height: 300px;   /* Base height */
+            max-height: 400px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
+
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f5f5f4;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #d6d3d1;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #a8a29e;
+        }
+
+
+        /* Interactive Elements */
+        .nav-link {
+            transition: all 0.2s ease;
+            border-right: 3px solid transparent;
+        }
+        .nav-link.active {
+            background-color: #FEF3C7; /* Amber 100 */
+            color: #92400E; /* Amber 800 */
+            border-right-color: #D97706; /* Amber 600 */
+        }
+       
+        .tab-btn {
+            transition: all 0.2s ease;
+            border-bottom: 2px solid transparent;
+        }
+        .tab-btn.active {
+            color: #D97706;
+            border-bottom-color: #D97706;
+            font-weight: 600;
+        }
+
+
+        .slider-thumb::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #D97706;
+            cursor: pointer;
+        }
+       
+        .card-hover:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+    </style>
+</head>
+<body class="flex flex-col md:flex-row h-screen overflow-hidden text-stone-800">
+
+
+    <!-- Mobile Header -->
+    <header class="md:hidden flex justify-between items-center p-4 bg-white border-b border-stone-200 z-50">
+        <div class="flex items-center gap-2">
+            <span class="text-2xl text-amber-600">&#9737;</span>
+            <h1 class="text-xl font-bold tracking-tight">Launch<span class="text-amber-600">AI</span></h1>
+        </div>
+        <button id="mobileMenuBtn" class="text-stone-600 focus:outline-none p-2 rounded hover:bg-stone-100">
+            <span class="text-2xl">&#9776;</span>
+        </button>
+    </header>
+
+
+    <!-- Sidebar Navigation -->
+    <nav id="sidebar" class="fixed md:relative inset-y-0 left-0 transform -translate-x-full md:translate-x-0 w-64 bg-white border-r border-stone-200 z-40 transition-transform duration-300 flex flex-col h-full shadow-lg md:shadow-none">
+        <div class="p-6 border-b border-stone-100 hidden md:block">
+            <div class="flex items-center gap-2">
+                <span class="text-3xl text-amber-600">&#9737;</span>
+                <div>
+                    <h1 class="text-xl font-bold tracking-tight">Launch<span class="text-amber-600">AI</span></h1>
+                    <p class="text-xs text-stone-500 uppercase tracking-widest mt-1">Strategic Report</p>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="flex-1 overflow-y-auto py-6 flex flex-col gap-1">
+            <button onclick="router('executive')" class="nav-link px-6 py-3 text-left text-sm font-medium text-stone-600 hover:bg-stone-50 hover:text-stone-900 active" data-target="executive">
+                &#10022; Executive Summary
+            </button>
+            <button onclick="router('market')" class="nav-link px-6 py-3 text-left text-sm font-medium text-stone-600 hover:bg-stone-50 hover:text-stone-900" data-target="market">
+                &#128200; Market Analysis
+            </button>
+            <button onclick="router('product')" class="nav-link px-6 py-3 text-left text-sm font-medium text-stone-600 hover:bg-stone-50 hover:text-stone-900" data-target="product">
+                &#9881; Platform Architecture
+            </button>
+            <button onclick="router('financials')" class="nav-link px-6 py-3 text-left text-sm font-medium text-stone-600 hover:bg-stone-50 hover:text-stone-900" data-target="financials">
+                &#128178; Financial Model
+            </button>
+            <button onclick="router('roadmap')" class="nav-link px-6 py-3 text-left text-sm font-medium text-stone-600 hover:bg-stone-50 hover:text-stone-900" data-target="roadmap">
+                &#128640; Rollout Roadmap
+            </button>
+        </div>
+
+
+        <div class="p-4 border-t border-stone-100 bg-stone-50">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-amber-200 text-amber-800 flex items-center justify-center font-bold text-sm">JS</div>
+                <div>
+                    <p class="text-sm font-bold text-stone-900">Jane Smith</p>
+                    <p class="text-xs text-stone-500">Lead Product Analyst</p>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+
+    <!-- Main Content Area -->
+    <main class="flex-1 h-full overflow-y-auto bg-stone-50 p-4 md:p-8 lg:p-12 transition-all duration-300" id="main-content">
+       
+        <!-- SECTION: EXECUTIVE SUMMARY -->
+        <section id="executive" class="max-w-6xl mx-auto space-y-8 animate-fade-in block">
+            <div class="space-y-4">
+                <h2 class="text-3xl md:text-4xl font-bold text-stone-900">Executive Summary</h2>
+                <p class="text-lg text-stone-600 max-w-3xl leading-relaxed">
+                    LaunchAI is a proposed SaaS platform leveraging Generative AI to democratize entrepreneurship.
+                    By automating validation, planning, and competitive analysis, we address the critical friction points that cause 42% of startups to fail.
+                    This interactive report outlines the market opportunity, product efficacy, and the path to $12M ARR.
+                </p>
+            </div>
+
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <!-- KPI Card 1 -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-100 card-hover transition-all">
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="p-2 bg-red-100 rounded-lg text-red-600">&#9888;</div>
+                        <span class="text-xs font-bold text-stone-400 uppercase">Problem</span>
+                    </div>
+                    <div class="text-3xl font-bold text-stone-900">42%</div>
+                    <p class="text-sm text-stone-500 mt-1">Startups fail due to "No Market Need"</p>
+                </div>
+
+
+                <!-- KPI Card 2 -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-100 card-hover transition-all">
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="p-2 bg-amber-100 rounded-lg text-amber-600">&#128188;</div>
+                        <span class="text-xs font-bold text-stone-400 uppercase">Opportunity</span>
+                    </div>
+                    <div class="text-3xl font-bold text-stone-900">$54B</div>
+                    <p class="text-sm text-stone-500 mt-1">Total Addressable Market (Business Software)</p>
+                </div>
+
+
+                <!-- KPI Card 3 -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-100 card-hover transition-all">
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="p-2 bg-green-100 rounded-lg text-green-600">&#128640;</div>
+                        <span class="text-xs font-bold text-stone-400 uppercase">Growth</span>
+                    </div>
+                    <div class="text-3xl font-bold text-stone-900">91%</div>
+                    <p class="text-sm text-stone-500 mt-1">SMBs planning to adopt AI by 2026</p>
+                </div>
+
+
+                <!-- KPI Card 4 -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-100 card-hover transition-all">
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="p-2 bg-blue-100 rounded-lg text-blue-600">&#128176;</div>
+                        <span class="text-xs font-bold text-stone-400 uppercase">Projection</span>
+                    </div>
+                    <div class="text-3xl font-bold text-stone-900">$12M</div>
+                    <p class="text-sm text-stone-500 mt-1">Projected ARR by Year 3 (Base Case)</p>
+                </div>
+            </div>
+
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">
+                <div class="bg-white p-8 rounded-xl shadow-sm border border-stone-100">
+                    <h3 class="text-xl font-bold text-stone-900 mb-4">The Friction Point</h3>
+                    <p class="text-stone-600 mb-4 leading-relaxed">
+                        Currently, aspiring founders are forced to stitch together fragmented tools: LegalZoom for structure, Fiverr for research, and Excel for planning. This creates "Analysis Paralysis."
+                    </p>
+                    <ul class="space-y-3">
+                        <li class="flex items-center text-sm text-stone-600">
+                            <span class="text-red-500 mr-2">&#10008;</span> High cost of entry ($5k+ for basic consulting)
+                        </li>
+                        <li class="flex items-center text-sm text-stone-600">
+                            <span class="text-red-500 mr-2">&#10008;</span> Subjective, biased idea validation
+                        </li>
+                        <li class="flex items-center text-sm text-stone-600">
+                            <span class="text-red-500 mr-2">&#10008;</span> No unified roadmap
+                        </li>
+                    </ul>
+                </div>
+                <div class="bg-stone-900 p-8 rounded-xl shadow-sm text-white">
+                    <h3 class="text-xl font-bold text-white mb-4">The LaunchAI Solution</h3>
+                    <p class="text-stone-300 mb-4 leading-relaxed">
+                        An end-to-end AI Co-founder. We ingest a raw idea and output a validated, structured business launch package in minutes, not months.
+                    </p>
+                    <div class="flex gap-4 mt-6">
+                        <div class="text-center">
+                            <div class="text-amber-500 font-bold text-2xl">1</div>
+                            <div class="text-xs text-stone-400 uppercase mt-1">Validate</div>
+                        </div>
+                        <div class="text-stone-600 font-bold text-xl">&rarr;</div>
+                        <div class="text-center">
+                            <div class="text-amber-500 font-bold text-2xl">2</div>
+                            <div class="text-xs text-stone-400 uppercase mt-1">Plan</div>
+                        </div>
+                        <div class="text-stone-600 font-bold text-xl">&rarr;</div>
+                        <div class="text-center">
+                            <div class="text-amber-500 font-bold text-2xl">3</div>
+                            <div class="text-xs text-stone-400 uppercase mt-1">Launch</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- SECTION: MARKET ANALYSIS -->
+        <section id="market" class="max-w-6xl mx-auto space-y-8 hidden">
+            <div class="space-y-4">
+                <h2 class="text-3xl font-bold text-stone-900">Market Intelligence</h2>
+                <p class="text-lg text-stone-600 max-w-3xl leading-relaxed">
+                    We sit at the intersection of a massive problem (startup failure) and a massive solution trend (AI adoption). The charts below illustrate the urgency of the market need.
+                </p>
+            </div>
+
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- CHART 1: Failure Reasons -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-100">
+                    <h3 class="text-lg font-bold text-stone-900 mb-2">Why Do Startups Fail?</h3>
+                    <p class="text-sm text-stone-500 mb-6">LaunchAI directly targets the #1 cause: Lack of Market Need.</p>
+                    <div class="chart-container">
+                        <canvas id="failureChart"></canvas>
+                    </div>
+                </div>
+
+
+                <!-- CHART 2: Adoption Trend -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-100">
+                    <h3 class="text-lg font-bold text-stone-900 mb-2">SMB AI Adoption Velocity</h3>
+                    <p class="text-sm text-stone-500 mb-6">Percentage of small businesses integrating AI tools.</p>
+                    <div class="chart-container">
+                        <canvas id="adoptionChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- Analysis Text Block -->
+            <div class="bg-amber-50 border-l-4 border-amber-500 p-6 rounded-r-xl">
+                <h4 class="font-bold text-amber-900 mb-2">Strategic Insight</h4>
+                <p class="text-amber-800 text-sm leading-relaxed">
+                    While AI adoption is skyrocketing, most tools are generic (e.g., ChatGPT). There is a significant gap for <strong>vertical-specific AI</strong> that handles the structured, complex workflow of starting a legally compliant and strategically sound business. LaunchAI fills this gap.
+                </p>
+            </div>
+        </section>
+
+
+        <!-- SECTION: PRODUCT ARCHITECTURE -->
+        <section id="product" class="max-w-6xl mx-auto space-y-8 hidden">
+            <div class="space-y-4">
+                <h2 class="text-3xl font-bold text-stone-900">Platform Architecture</h2>
+                <p class="text-lg text-stone-600 max-w-3xl leading-relaxed">
+                    The platform consists of four core modules. Interact with the tabs below to explore how the user moves from "Raw Idea" to "Execution".
+                </p>
+            </div>
+
+
+            <div class="bg-white rounded-xl shadow-sm border border-stone-100 overflow-hidden flex flex-col md:flex-row min-h-[500px]">
+                <!-- Tab Headers -->
+                <div class="bg-stone-50 md:w-64 flex-shrink-0 border-b md:border-b-0 md:border-r border-stone-200 p-4 flex flex-row md:flex-col gap-2 overflow-x-auto">
+                    <button class="tab-btn w-full text-left px-4 py-3 rounded-lg text-stone-600 hover:bg-stone-100 font-medium active" onclick="switchTab('validator', this)">
+                        1. Idea Validator
+                    </button>
+                    <button class="tab-btn w-full text-left px-4 py-3 rounded-lg text-stone-600 hover:bg-stone-100 font-medium" onclick="switchTab('planner', this)">
+                        2. Plan Generator
+                    </button>
+                    <button class="tab-btn w-full text-left px-4 py-3 rounded-lg text-stone-600 hover:bg-stone-100 font-medium" onclick="switchTab('spy', this)">
+                        3. Competitor Spy
+                    </button>
+                    <button class="tab-btn w-full text-left px-4 py-3 rounded-lg text-stone-600 hover:bg-stone-100 font-medium" onclick="switchTab('launch', this)">
+                        4. Launch Check
+                    </button>
+                </div>
+
+
+                <!-- Tab Content Area -->
+                <div id="tab-content" class="flex-1 p-8 md:p-12 flex flex-col justify-center">
+                    <!-- Content injected via JS -->
+                </div>
+            </div>
+        </section>
+
+
+        <!-- SECTION: FINANCIAL MODEL -->
+        <section id="financials" class="max-w-6xl mx-auto space-y-8 hidden">
+            <div class="space-y-4">
+                <h2 class="text-3xl font-bold text-stone-900">Financial Model</h2>
+                <p class="text-lg text-stone-600 max-w-3xl leading-relaxed">
+                    Our subscription model relies on volume and retention. Use the simulator below to test revenue outcomes based on pricing and acquisition assumptions.
+                </p>
+            </div>
+
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- Controls -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-100 h-fit">
+                    <h3 class="font-bold text-stone-900 mb-6">Revenue Simulator</h3>
+                   
+                    <div class="space-y-6">
+                        <div>
+                            <div class="flex justify-between mb-2">
+                                <label class="text-xs font-bold text-stone-500 uppercase">Year 1 Subscribers</label>
+                                <span id="subDisplay" class="text-sm font-bold text-amber-600">1,000</span>
+                            </div>
+                            <input type="range" id="subSlider" min="500" max="10000" step="100" value="1000" class="w-full h-2 bg-stone-200 rounded-lg appearance-none cursor-pointer slider-thumb">
+                        </div>
+
+
+                        <div>
+                            <div class="flex justify-between mb-2">
+                                <label class="text-xs font-bold text-stone-500 uppercase">Avg. Monthly Price</label>
+                                <span id="priceDisplay" class="text-sm font-bold text-amber-600">$35</span>
+                            </div>
+                            <input type="range" id="priceSlider" min="10" max="100" step="5" value="35" class="w-full h-2 bg-stone-200 rounded-lg appearance-none cursor-pointer slider-thumb">
+                        </div>
+
+
+                        <div class="pt-6 border-t border-stone-100">
+                            <p class="text-xs text-stone-400 uppercase mb-1">Projected MRR</p>
+                            <p id="mrrDisplay" class="text-3xl font-bold text-stone-900">$35,000</p>
+                            <p class="text-xs text-stone-400 mt-2">Annual Run Rate: <span id="arrDisplay" class="text-stone-800 font-bold">$420,000</span></p>
+                        </div>
+                    </div>
+                </div>
+
+
+                <!-- Visualization -->
+                <div class="lg:col-span-2 bg-white p-6 rounded-xl shadow-sm border border-stone-100">
+                    <h3 class="font-bold text-stone-900 mb-2">3-Year Revenue Growth Trajectory</h3>
+                    <p class="text-sm text-stone-500 mb-6">Assumes 200% YoY growth in user base and 5% churn.</p>
+                    <div class="chart-container">
+                        <canvas id="revenueChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- Pricing Tiers -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
+                <div class="p-6 bg-stone-50 rounded-lg text-center border border-stone-200 opacity-75">
+                    <h4 class="font-bold text-stone-600">Explorer</h4>
+                    <p class="text-xl font-bold mt-2">$0</p>
+                    <p class="text-xs text-stone-500 mt-2">Lead Gen / Validation</p>
+                </div>
+                <div class="p-6 bg-white rounded-lg text-center border-2 border-amber-500 shadow-md transform scale-105">
+                    <h4 class="font-bold text-stone-900">Founder</h4>
+                    <p class="text-xl font-bold mt-2 text-amber-600">$29/mo</p>
+                    <p class="text-xs text-stone-500 mt-2">Core Product</p>
+                </div>
+                <div class="p-6 bg-stone-50 rounded-lg text-center border border-stone-200 opacity-75">
+                    <h4 class="font-bold text-stone-600">Scale</h4>
+                    <p class="text-xl font-bold mt-2">$79/mo</p>
+                    <p class="text-xs text-stone-500 mt-2">Advanced Tools</p>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- SECTION: ROADMAP -->
+        <section id="roadmap" class="max-w-6xl mx-auto space-y-8 hidden">
+            <div class="space-y-4">
+                <h2 class="text-3xl font-bold text-stone-900">Rollout Roadmap</h2>
+                <p class="text-lg text-stone-600 max-w-3xl leading-relaxed">
+                    A phased approach to market entry, focusing on product-led growth followed by strategic B2B partnerships.
+                </p>
+            </div>
+
+
+            <div class="bg-white p-8 rounded-xl shadow-sm border border-stone-100">
+                <div class="relative border-l-2 border-stone-200 ml-4 space-y-12 my-4">
+                    <!-- Milestone 1 -->
+                    <div class="relative pl-8">
+                        <div class="absolute -left-2.5 top-1 w-5 h-5 rounded-full bg-amber-500 border-4 border-white shadow-sm"></div>
+                        <span class="text-xs font-bold text-amber-600 uppercase tracking-widest">Q1 2026</span>
+                        <h3 class="text-lg font-bold text-stone-900 mt-1">MVP Beta Launch</h3>
+                        <p class="text-stone-600 mt-2 text-sm max-w-md">Release of the "Idea Validator" module (Free). Goal: Acquire 5,000 email signups and train the validation algorithm.</p>
+                    </div>
+
+
+                    <!-- Milestone 2 -->
+                    <div class="relative pl-8">
+                        <div class="absolute -left-2.5 top-1 w-5 h-5 rounded-full bg-stone-300 border-4 border-white shadow-sm"></div>
+                        <span class="text-xs font-bold text-stone-500 uppercase tracking-widest">Q3 2026</span>
+                        <h3 class="text-lg font-bold text-stone-900 mt-1">Monetization ON</h3>
+                        <p class="text-stone-600 mt-2 text-sm max-w-md">Launch of "Plan Generator" and Subscription Tiers. Integration with Stripe. Goal: $10k MRR.</p>
+                    </div>
+
+
+                    <!-- Milestone 3 -->
+                    <div class="relative pl-8">
+                        <div class="absolute -left-2.5 top-1 w-5 h-5 rounded-full bg-stone-300 border-4 border-white shadow-sm"></div>
+                        <span class="text-xs font-bold text-stone-500 uppercase tracking-widest">Q1 2027</span>
+                        <h3 class="text-lg font-bold text-stone-900 mt-1">Partnership Ecosystem</h3>
+                        <p class="text-stone-600 mt-2 text-sm max-w-md">API integration with LegalZoom (incorporation) and Brex (banking). Revenue share models activated.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+    </main>
+
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // --- DATA STORAGE & CONFIG ---
+        const state = {
+            currentSection: 'executive',
+            subscribers: 1000,
+            price: 35,
+            charts: {}
+        };
+
+
+        const tabContentData = {
+            'validator': {
+                title: "Idea Validator",
+                subtitle: "Instant Algorithmic Feedback",
+                desc: "The user inputs a raw concept (e.g., 'Uber for Dog Walking'). Our engine scrapes search volume, keyword difficulty, and current trends to assign a 'Viability Score'.",
+                visual: `
+                    <div class="bg-stone-100 p-6 rounded-lg border border-stone-200">
+                        <div class="mb-4">
+                            <span class="text-xs font-bold text-stone-400">INPUT</span>
+                            <div class="bg-white p-3 rounded border border-stone-200 text-stone-800 mt-1 shadow-sm">"Subscription box for rare succulents"</div>
+                        </div>
+                        <div class="flex items-center gap-2 mb-4 justify-center text-stone-400">
+                            <span>&#8595;</span> <span class="text-xs">Processing Market Data</span> <span>&#8595;</span>
+                        </div>
+                        <div>
+                            <span class="text-xs font-bold text-stone-400">OUTPUT</span>
+                            <div class="bg-white p-4 rounded border-l-4 border-green-500 shadow-sm mt-1">
+                                <div class="flex justify-between items-center mb-2">
+                                    <span class="font-bold text-stone-800">Viability Score</span>
+                                    <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full font-bold">88/100</span>
+                                </div>
+                                <p class="text-xs text-stone-600"><strong>Strength:</strong> High search volume growth (+22% YoY).</p>
+                                <p class="text-xs text-stone-600"><strong>Weakness:</strong> Shipping logistics are high risk.</p>
+                            </div>
+                        </div>
+                    </div>
+                `
+            },
+            'planner': {
+                title: "Plan Generator",
+                subtitle: "From Sentence to Strategy",
+                desc: "Generates a 15-page comprehensive business plan including Executive Summary, Marketing Strategy, and Operational Logistics, formatted for bank loans or investors.",
+                visual: `
+                    <div class="bg-stone-100 p-6 rounded-lg border border-stone-200 flex flex-col items-center justify-center h-full">
+                        <div class="w-48 h-56 bg-white shadow-lg border border-stone-200 rounded relative transform rotate-3 transition-transform hover:rotate-0">
+                            <div class="h-4 w-3/4 bg-stone-800 m-4 rounded"></div>
+                            <div class="h-2 w-full bg-stone-200 m-4 rounded"></div>
+                            <div class="h-2 w-full bg-stone-200 m-4 rounded"></div>
+                            <div class="h-2 w-2/3 bg-stone-200 m-4 rounded"></div>
+                            <div class="absolute bottom-4 right-4 text-amber-600 text-2xl">&#10004;</div>
+                        </div>
+                        <button class="mt-6 bg-stone-800 text-white px-4 py-2 rounded text-sm shadow hover:bg-stone-900 transition">Download PDF</button>
+                    </div>
+                `
+            },
+            'spy': {
+                title: "Competitor Spy",
+                subtitle: "Automated SWOT Analysis",
+                desc: "Identifies top 5 direct competitors. Analyzes their pricing, feature gaps, and customer reviews to highlight your 'Unfair Advantage'.",
+                visual: `
+                    <div class="bg-stone-100 p-6 rounded-lg border border-stone-200 h-full overflow-hidden">
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="bg-white p-3 rounded shadow-sm opacity-50">
+                                <div class="font-bold text-xs text-stone-400">Competitor A</div>
+                                <div class="text-sm font-bold">$20/mo</div>
+                            </div>
+                            <div class="bg-white p-3 rounded shadow-sm opacity-50">
+                                <div class="font-bold text-xs text-stone-400">Competitor B</div>
+                                <div class="text-sm font-bold">$25/mo</div>
+                            </div>
+                            <div class="bg-amber-50 border border-amber-200 p-3 rounded shadow-sm col-span-2">
+                                <div class="font-bold text-xs text-amber-600">Your Opportunity</div>
+                                <div class="text-sm font-bold text-stone-800 mt-1">Gap Identified: "Eco-Friendly Packaging"</div>
+                                <div class="text-xs text-stone-500 mt-1">Neither competitor offers sustainable options.</div>
+                            </div>
+                        </div>
+                    </div>
+                `
+            },
+            'launch': {
+                title: "Launch Checklist",
+                subtitle: "Execution Management",
+                desc: "A dynamic Gantt chart and task manager. Integrates with calendar APIs to ensure you file paperwork, buy domains, and launch ads on time.",
+                visual: `
+                    <div class="bg-stone-100 p-6 rounded-lg border border-stone-200 h-full">
+                        <div class="space-y-3">
+                            <div class="flex items-center bg-white p-2 rounded border border-stone-200">
+                                <span class="text-green-500 mr-3">&#10004;</span>
+                                <span class="text-sm text-stone-400 line-through">Register Domain</span>
+                            </div>
+                            <div class="flex items-center bg-white p-2 rounded border border-stone-200">
+                                <span class="text-green-500 mr-3">&#10004;</span>
+                                <span class="text-sm text-stone-400 line-through">File LLC</span>
+                            </div>
+                            <div class="flex items-center bg-white p-2 rounded border-l-4 border-amber-500 shadow-sm">
+                                <span class="text-stone-300 mr-3">&#9744;</span>
+                                <span class="text-sm font-bold text-stone-800">Set up Stripe</span>
+                                <span class="ml-auto text-xs bg-amber-100 text-amber-800 px-2 py-0.5 rounded">Due Tmrw</span>
+                            </div>
+                        </div>
+                    </div>
+                `
+            }
+        };
+
+
+        // --- NAVIGATION ---
+        function router(targetId) {
+            // Update Menu UI
+            document.querySelectorAll('.nav-link').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.dataset.target === targetId) btn.classList.add('active');
+            });
+
+
+            // Update Section Visibility
+            document.querySelectorAll('section').forEach(sec => {
+                sec.classList.add('hidden');
+                sec.classList.remove('animate-fade-in'); // Reset animation
+            });
+
+
+            const activeSec = document.getElementById(targetId);
+            activeSec.classList.remove('hidden');
+            void activeSec.offsetWidth; // Trigger reflow for animation
+            activeSec.classList.add('animate-fade-in');
+
+
+            // Handle Mobile Menu Close
+            const sidebar = document.getElementById('sidebar');
+            if (window.innerWidth < 768) {
+                sidebar.classList.add('-translate-x-full');
+            }
+
+
+            // Lazy Load Charts
+            if (targetId === 'market') renderMarketCharts();
+            if (targetId === 'financials') renderFinancialChart();
+        }
+
+
+        document.getElementById('mobileMenuBtn').addEventListener('click', () => {
+            document.getElementById('sidebar').classList.toggle('-translate-x-full');
+        });
+
+
+        // --- PRODUCT TABS ---
+        function switchTab(key, btnElement) {
+            // Update Buttons
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active', 'bg-stone-100'));
+            if(btnElement) {
+                btnElement.classList.add('active', 'bg-stone-100');
+            }
+
+
+            // Update Content
+            const data = tabContentData[key];
+            const container = document.getElementById('tab-content');
+           
+            container.innerHTML = `
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center animate-fade-in">
+                    <div>
+                        <h3 class="text-2xl font-bold text-stone-900">${data.title}</h3>
+                        <p class="text-amber-600 font-medium text-sm uppercase tracking-wide mb-4">${data.subtitle}</p>
+                        <p class="text-stone-600 leading-relaxed">${data.desc}</p>
+                    </div>
+                    <div class="h-64 md:h-80 w-full">
+                        ${data.visual}
+                    </div>
+                </div>
+            `;
+        }
+
+
+        // --- CHARTS (MARKET) ---
+        function renderMarketCharts() {
+            if (state.charts.failure) return; // Prevent re-render
+
+
+            // 1. Failure Chart (Doughnut)
+            const ctxFail = document.getElementById('failureChart').getContext('2d');
+            state.charts.failure = new Chart(ctxFail, {
+                type: 'doughnut',
+                data: {
+                    labels: ['No Market Need', 'Ran Out of Cash', 'Not Right Team', 'Competition', 'Other'],
+                    datasets: [{
+                        data: [42, 29, 23, 19, 10],
+                        backgroundColor: ['#D97706', '#78716C', '#A8A29E', '#E7E5E4', '#F5F5F4'],
+                        borderWidth: 0,
+                        hoverOffset: 10
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'right', labels: { usePointStyle: true, boxWidth: 8, font: {family: "'Plus Jakarta Sans', sans-serif"} } },
+                        tooltip: { callbacks: { label: (c) => ` ${c.label}: ${c.raw}%` } }
+                    },
+                    cutout: '70%'
+                }
+            });
+
+
+            // 2. Adoption Chart (Line)
+            const ctxAdopt = document.getElementById('adoptionChart').getContext('2d');
+            state.charts.adoption = new Chart(ctxAdopt, {
+                type: 'line',
+                data: {
+                    labels: ['2022', '2023', '2024', '2025 (Est)', '2026 (Est)'],
+                    datasets: [{
+                        label: 'SMB AI Adoption (%)',
+                        data: [23, 35, 58, 75, 91],
+                        borderColor: '#1C1917',
+                        backgroundColor: 'rgba(217, 119, 6, 0.1)',
+                        borderWidth: 3,
+                        pointBackgroundColor: '#D97706',
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { beginAtZero: true, max: 100, grid: { display: true, borderDash: [5, 5] } },
+                        x: { grid: { display: false } }
+                    },
+                    plugins: { legend: { display: false } }
+                }
+            });
+        }
+
+
+        // --- CHARTS (FINANCIAL) ---
+        function renderFinancialChart() {
+            // Logic to update or create chart
+            const ctxRev = document.getElementById('revenueChart').getContext('2d');
+           
+            // Calculate Projection
+            const monthly = state.subscribers * state.price;
+            const year1 = monthly * 12;
+            const year2 = year1 * 2.5; // Growth Assumption
+            const year3 = year2 * 2.0; // Growth Assumption
+
+
+            const data = [year1, year2, year3];
+
+
+            if (state.charts.revenue) {
+                state.charts.revenue.data.datasets[0].data = data;
+                state.charts.revenue.update();
+            } else {
+                state.charts.revenue = new Chart(ctxRev, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Year 1', 'Year 2', 'Year 3'],
+                        datasets: [{
+                            label: 'Projected Revenue ($)',
+                            data: data,
+                            backgroundColor: ['#E7E5E4', '#A8A29E', '#D97706'],
+                            borderRadius: 6,
+                            barThickness: 40
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: { callbacks: { label: (c) => ` $${c.raw.toLocaleString()}` } }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: { callback: (v) => '$' + (v/1000000).toFixed(1) + 'M' }
+                            },
+                            x: { grid: { display: false } }
+                        }
+                    }
+                });
+            }
+        }
+
+
+        // --- SIMULATOR LOGIC ---
+        function updateFinancials() {
+            state.subscribers = parseInt(document.getElementById('subSlider').value);
+            state.price = parseInt(document.getElementById('priceSlider').value);
+
+
+            // Update DOM text
+            document.getElementById('subDisplay').textContent = state.subscribers.toLocaleString();
+            document.getElementById('priceDisplay').textContent = `$${state.price}`;
+           
+            const mrr = state.subscribers * state.price;
+            document.getElementById('mrrDisplay').textContent = `$${mrr.toLocaleString()}`;
+            document.getElementById('arrDisplay').textContent = `$${(mrr * 12).toLocaleString()}`;
+
+
+            // Update Chart
+            if (state.currentSection === 'financials') renderFinancialChart();
+        }
+
+
+        // Event Listeners for Sliders
+        document.getElementById('subSlider').addEventListener('input', updateFinancials);
+        document.getElementById('priceSlider').addEventListener('input', updateFinancials);
+
+
+        // --- INITIALIZATION ---
+        window.addEventListener('DOMContentLoaded', () => {
+            // Load initial tab
+            const firstTabBtn = document.querySelector('.tab-btn');
+            switchTab('validator', firstTabBtn);
+           
+            // Render charts if landing on chart page (default is executive, so usually no)
+            if(state.currentSection === 'market') renderMarketCharts();
+        });
+
+
+    </script>
+</body>
+</html>
+
