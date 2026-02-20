@@ -1,4 +1,5 @@
 'use client';
+import { Brain, User, BarChart, Settings, Rocket } from 'lucide-react'; // Changed UserTie to User
 import { useState, useEffect } from 'react';
 import { Target, Users, DollarSign, Calculator, UserTie, ShieldCheck, Brain, Send } from 'lucide-react';
 
@@ -22,7 +23,7 @@ export default function Dashboard() {
           <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4 px-2">Board of Directors</p>
           {['MentorAI', 'CoachAI', 'AccountantAI', 'LawyerAI', 'SecretaryAI'].map((gem) => (
             <button key={gem} className="w-full text-left p-3 text-xs opacity-60 hover:opacity-100 transition-all flex items-center hover:bg-white/5 rounded-lg">
-              <UserTie className="mr-2 w-4 text-blue-400" /> {gem}
+              <User className="mr-2 w-4 text-blue-400" /> {gem}
             </button>
           ))}
         </nav>
