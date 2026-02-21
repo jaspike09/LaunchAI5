@@ -9,7 +9,7 @@
 
 body {
   background-color: #020617;
-  color: #f1f5f9;
+  color: white;
   background-image: 
     radial-gradient(at 0% 0%, hsla(222,47%,11%,1) 0, transparent 50%), 
     radial-gradient(at 100% 100%, hsla(222,47%,5%,1) 0, transparent 50%);
